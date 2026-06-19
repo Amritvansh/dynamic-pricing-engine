@@ -29,6 +29,15 @@ const pricingHistorySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    demandScore: {
+      type: Number,
+    },
+    demandLevel: {
+      type: String,
+    },
+    inventoryLevel: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
