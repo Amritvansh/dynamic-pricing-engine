@@ -1,25 +1,25 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from "@mui/material/styles";
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1565C0', // Deep blue
+      main: "#1565C0",
     },
     secondary: {
-      main: '#F57C00', // Amber
+      main: "#F57C00",
     },
     error: {
-      main: '#C62828', // Red for low stock/price drops
+      main: "#C62828",
     },
     warning: {
-      main: '#F9A825', // Yellow for medium stock
+      main: "#F9A825",
     },
     success: {
-      main: '#2E7D32', // Green for high stock/price increases
+      main: "#2E7D32",
     },
     background: {
-      default: '#F5F7FA', // Light grey page background
-      paper: '#FFFFFF', // White card background
+      default: "#F5F7FA",
+      paper: "#FFFFFF",
     },
   },
   typography: {
@@ -41,7 +41,7 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none', // Don't uppercase buttons
+          textTransform: "none",
           fontWeight: 600,
         },
       },
@@ -49,7 +49,7 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)',
+          boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.05)",
         },
       },
     },

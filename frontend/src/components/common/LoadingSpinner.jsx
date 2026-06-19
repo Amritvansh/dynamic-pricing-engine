@@ -1,14 +1,14 @@
-import React from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import React from "react";
+import { Box, CircularProgress, Typography } from "@mui/material";
 
-const LoadingSpinner = ({ message = 'Loading...', fullScreen = false }) => {
+const LoadingSpinner = ({ message = "Loading...", fullScreen = false }) => {
   return (
     <Box
       display="flex"
       flexDirection="column"
       alignItems="center"
       justifyContent="center"
-      minHeight={fullScreen ? '100vh' : '200px'}
+      minHeight={fullScreen ? "100vh" : "200px"}
       width="100%"
     >
       <CircularProgress color="primary" />

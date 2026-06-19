@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const competitorPriceSchema = new mongoose.Schema(
   {
     productId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
+      ref: "Product",
       required: true,
     },
     competitorName: {
@@ -18,7 +18,7 @@ const competitorPriceSchema = new mongoose.Schema(
       min: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.model('CompetitorPrice', competitorPriceSchema);
+module.exports = mongoose.model("CompetitorPrice", competitorPriceSchema);

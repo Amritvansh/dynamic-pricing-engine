@@ -7,21 +7,21 @@
 
 ## ⚠️ CRITICAL STATUS SUMMARY
 
-| Component | Status | Completion |
-|-----------|--------|------------|
-| Backend server.js | ❌ Empty file | 0% |
-| Backend routes | ❌ Not created | 0% |
-| Backend controllers | ❌ Not created | 0% |
-| Backend middleware | ❌ Not created | 0% |
-| Backend config (DB) | ❌ Not created | 0% |
-| Product model | ❌ Missing | 0% |
-| Inventory model | ❌ Missing | 0% |
-| Competitor Price model | ✅ Created | 100% |
-| Pricing History model | ✅ Partially (missing fields) | 70% |
-| Pricing Engine logic | ❌ Not created | 0% |
-| AI Explanation module | ❌ Not created | 0% |
-| Frontend (React app) | ❌ Not created | 0% |
-| .env configuration | ⚠️ Incomplete (missing API keys) | 30% |
+| Component              | Status                           | Completion |
+| ---------------------- | -------------------------------- | ---------- |
+| Backend server.js      | ❌ Empty file                    | 0%         |
+| Backend routes         | ❌ Not created                   | 0%         |
+| Backend controllers    | ❌ Not created                   | 0%         |
+| Backend middleware     | ❌ Not created                   | 0%         |
+| Backend config (DB)    | ❌ Not created                   | 0%         |
+| Product model          | ❌ Missing                       | 0%         |
+| Inventory model        | ❌ Missing                       | 0%         |
+| Competitor Price model | ✅ Created                       | 100%       |
+| Pricing History model  | ✅ Partially (missing fields)    | 70%        |
+| Pricing Engine logic   | ❌ Not created                   | 0%         |
+| AI Explanation module  | ❌ Not created                   | 0%         |
+| Frontend (React app)   | ❌ Not created                   | 0%         |
+| .env configuration     | ⚠️ Incomplete (missing API keys) | 30%        |
 
 ### **Overall Completion Estimate: ~8%**
 
@@ -32,6 +32,7 @@
 ## 1.1 Problem Statement Summary
 
 An e-commerce company sells products via multiple channels. Prices need to be **automatically adjusted** based on four real-world conditions:
+
 1. **Demand** — how fast a product is selling
 2. **Inventory** — how much stock remains
 3. **Competitor Pricing** — what rivals are charging
@@ -43,37 +44,41 @@ The system must **recommend** (not force) the best selling price using predefine
 
 ## 1.2 Core Objectives
 
-| # | Objective |
-|---|-----------|
-| 1 | Build a pricing recommendation engine using rule-based logic |
-| 2 | Manage products and their base prices |
-| 3 | Track and manage inventory levels |
-| 4 | Simulate competitor pricing (manually entered — no scraping required) |
-| 5 | Apply business rules to recommend a new price |
-| 6 | Use AI (OpenAI or Gemini) to generate a human-readable explanation |
-| 7 | Display analytics: price trends, inventory status, recommendations |
+| #   | Objective                                                             |
+| --- | --------------------------------------------------------------------- |
+| 1   | Build a pricing recommendation engine using rule-based logic          |
+| 2   | Manage products and their base prices                                 |
+| 3   | Track and manage inventory levels                                     |
+| 4   | Simulate competitor pricing (manually entered — no scraping required) |
+| 5   | Apply business rules to recommend a new price                         |
+| 6   | Use AI (OpenAI or Gemini) to generate a human-readable explanation    |
+| 7   | Display analytics: price trends, inventory status, recommendations    |
 
 ---
 
 ## 1.3 Functional Requirements
 
 ### Product Management
+
 - Add a product (name, category, current price)
 - Edit product details
 - Delete a product
 - View all products in a catalog
 
 ### Inventory Management
+
 - Set/update stock quantity per product
 - View inventory levels
 - Identify low-stock and high-stock products
 
 ### Competitor Pricing
+
 - Manually add competitor prices for a product
 - Update competitor prices
 - Compare our price vs. competitor price
 
 ### Pricing Engine
+
 - Accept product ID as input
 - Evaluate all four rule categories
 - Calculate a recommended price
@@ -81,6 +86,7 @@ The system must **recommend** (not force) the best selling price using predefine
 - Trigger AI explanation generation
 
 ### Analytics Dashboard
+
 - Total products count
 - Low stock products count
 - Recent price recommendations
@@ -90,14 +96,14 @@ The system must **recommend** (not force) the best selling price using predefine
 
 ## 1.4 Non-Functional Requirements (Inferred from assignment context)
 
-| Requirement | Detail |
-|-------------|--------|
-| Simplicity | Rule-based, no ML required |
-| Explainability | AI provides human-readable explanation |
-| Data Persistence | MongoDB Atlas |
-| Deployment | Frontend → Vercel, Backend → Render |
-| Tech Stack | React + Material UI + Axios / Node.js + Express / MongoDB |
-| AI | OpenAI API or Gemini API for explanation only |
+| Requirement      | Detail                                                    |
+| ---------------- | --------------------------------------------------------- |
+| Simplicity       | Rule-based, no ML required                                |
+| Explainability   | AI provides human-readable explanation                    |
+| Data Persistence | MongoDB Atlas                                             |
+| Deployment       | Frontend → Vercel, Backend → Render                       |
+| Tech Stack       | React + Material UI + Axios / Node.js + Express / MongoDB |
+| AI               | OpenAI API or Gemini API for explanation only             |
 
 ---
 
@@ -125,36 +131,36 @@ The system must **recommend** (not force) the best selling price using predefine
 
 ## 1.7 What Is Completed
 
-| Item | Status |
-|------|--------|
-| `competitorPrice.js` model | ✅ Complete and correct |
-| `pricingHistory.js` model | ✅ Mostly correct (minor field missing) |
-| `package.json` with correct dependencies | ✅ Done |
-| `.env` file created | ⚠️ Incomplete (no PORT, no AI key) |
-| MongoDB Atlas cluster configured | ✅ Cluster URL exists |
+| Item                                     | Status                                  |
+| ---------------------------------------- | --------------------------------------- |
+| `competitorPrice.js` model               | ✅ Complete and correct                 |
+| `pricingHistory.js` model                | ✅ Mostly correct (minor field missing) |
+| `package.json` with correct dependencies | ✅ Done                                 |
+| `.env` file created                      | ⚠️ Incomplete (no PORT, no AI key)      |
+| MongoDB Atlas cluster configured         | ✅ Cluster URL exists                   |
 
 ## 1.8 What Is Partially Completed
 
-| Item | Issue |
-|------|-------|
-| `pricingHistory.js` | Missing `demandLevel`, `inventoryLevel` fields for full context |
-| `.env` | Missing `PORT`, `JWT_SECRET`, `GEMINI_API_KEY` / `OPENAI_API_KEY` |
-| `package.json` | Missing `start` and `dev` scripts |
+| Item                | Issue                                                             |
+| ------------------- | ----------------------------------------------------------------- |
+| `pricingHistory.js` | Missing `demandLevel`, `inventoryLevel` fields for full context   |
+| `.env`              | Missing `PORT`, `JWT_SECRET`, `GEMINI_API_KEY` / `OPENAI_API_KEY` |
+| `package.json`      | Missing `start` and `dev` scripts                                 |
 
 ## 1.9 What Is Missing (Critical)
 
-| Missing Item | Priority |
-|-------------|----------|
-| `server.js` content | 🔴 BLOCKER |
-| `src/config/db.js` — MongoDB connection | 🔴 BLOCKER |
-| `src/models/product.js` | 🔴 BLOCKER |
-| `src/models/inventory.js` | 🔴 BLOCKER |
+| Missing Item                                              | Priority   |
+| --------------------------------------------------------- | ---------- |
+| `server.js` content                                       | 🔴 BLOCKER |
+| `src/config/db.js` — MongoDB connection                   | 🔴 BLOCKER |
+| `src/models/product.js`                                   | 🔴 BLOCKER |
+| `src/models/inventory.js`                                 | 🔴 BLOCKER |
 | All controllers (product, inventory, competitor, pricing) | 🔴 BLOCKER |
-| All routes files | 🔴 BLOCKER |
-| Pricing engine logic (`src/services/pricingEngine.js`) | 🔴 BLOCKER |
-| AI explanation service | 🔴 HIGH |
-| Entire React frontend | 🔴 BLOCKER |
-| Deployment configuration | 🟡 MEDIUM |
+| All routes files                                          | 🔴 BLOCKER |
+| Pricing engine logic (`src/services/pricingEngine.js`)    | 🔴 BLOCKER |
+| AI explanation service                                    | 🔴 HIGH    |
+| Entire React frontend                                     | 🔴 BLOCKER |
+| Deployment configuration                                  | 🟡 MEDIUM  |
 
 ---
 
@@ -306,12 +312,12 @@ The pricing engine is **purely rule-based**. No machine learning is required. Th
 
 ### Factors That Influence Price
 
-| Factor | How It Works | Direction |
-|--------|-------------|-----------|
-| Demand | Simulated score entered by admin | High → price up, Low → price down |
-| Inventory | Available stock quantity | Low stock → price up, High stock → price down |
-| Competitor Price | Manually entered competitor price | Lower competitor → our price down, Higher competitor → price up |
-| Time-Based | Day of week / special occasion flag | Weekend/festival → optional discount |
+| Factor           | How It Works                        | Direction                                                       |
+| ---------------- | ----------------------------------- | --------------------------------------------------------------- |
+| Demand           | Simulated score entered by admin    | High → price up, Low → price down                               |
+| Inventory        | Available stock quantity            | Low stock → price up, High stock → price down                   |
+| Competitor Price | Manually entered competitor price   | Lower competitor → our price down, Higher competitor → price up |
+| Time-Based       | Day of week / special occasion flag | Weekend/festival → optional discount                            |
 
 ---
 
@@ -418,6 +424,7 @@ finalRecommendedPrice = CLAMP(recommendedPrice, MIN_PRICE, MAX_PRICE)
 ```
 
 **Example walkthrough:**
+
 ```
 Product: Wireless Mouse
 currentPrice = ₹799
@@ -451,18 +458,19 @@ Since this is a college project, demand is **not computed from actual sales data
 - **Demand Score** is a number (0–100) that the admin enters when requesting a price calculation
 - It represents the admin's assessment of how well a product is selling
 
-| Demand Score | Category | Behavior |
-|-------------|----------|---------|
-| 70–100 | HIGH | Price increases |
-| 40–69 | MEDIUM | No demand-based adjustment |
-| 0–39 | LOW | Price decreases |
+| Demand Score | Category | Behavior                   |
+| ------------ | -------- | -------------------------- |
+| 70–100       | HIGH     | Price increases            |
+| 40–69        | MEDIUM   | No demand-based adjustment |
+| 0–39         | LOW      | Price decreases            |
 
 **Implementation Strategy:**
+
 ```javascript
 function classifyDemand(demandScore) {
-  if (demandScore >= 70) return 'HIGH';
-  if (demandScore >= 40) return 'MEDIUM';
-  return 'LOW';
+  if (demandScore >= 70) return "HIGH";
+  if (demandScore >= 40) return "MEDIUM";
+  return "LOW";
 }
 ```
 
@@ -517,16 +525,16 @@ RETURN TO FRONTEND
 
 **Purpose:** Store product catalog with base price.
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `_id` | ObjectId | Auto | Mongoose default |
-| `productName` | String | ✅ | trim, minLen 2, maxLen 100 |
-| `category` | String | ✅ | trim, enum or free-text |
-| `currentPrice` | Number | ✅ | min: 0 |
-| `basePrice` | Number | ✅ | min: 0 (original price, reference) |
-| `description` | String | ❌ | optional |
-| `createdAt` | Date | Auto | timestamps: true |
-| `updatedAt` | Date | Auto | timestamps: true |
+| Field          | Type     | Required | Validation                         |
+| -------------- | -------- | -------- | ---------------------------------- |
+| `_id`          | ObjectId | Auto     | Mongoose default                   |
+| `productName`  | String   | ✅       | trim, minLen 2, maxLen 100         |
+| `category`     | String   | ✅       | trim, enum or free-text            |
+| `currentPrice` | Number   | ✅       | min: 0                             |
+| `basePrice`    | Number   | ✅       | min: 0 (original price, reference) |
+| `description`  | String   | ❌       | optional                           |
+| `createdAt`    | Date     | Auto     | timestamps: true                   |
+| `updatedAt`    | Date     | Auto     | timestamps: true                   |
 
 > **Note:** Assignment says `basePrice` should exist but only lists `currentPrice`. Add `basePrice` as the original price — this helps reset prices if needed.
 
@@ -538,13 +546,13 @@ RETURN TO FRONTEND
 
 **Purpose:** Track available stock per product.
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `_id` | ObjectId | Auto | — |
-| `productId` | ObjectId | ✅ | ref: 'Product' |
-| `availableQuantity` | Number | ✅ | min: 0, integer |
-| `lowStockThreshold` | Number | ❌ | default: 10 |
-| `updatedAt` | Date | Auto | timestamps: true |
+| Field               | Type     | Required | Validation       |
+| ------------------- | -------- | -------- | ---------------- |
+| `_id`               | ObjectId | Auto     | —                |
+| `productId`         | ObjectId | ✅       | ref: 'Product'   |
+| `availableQuantity` | Number   | ✅       | min: 0, integer  |
+| `lowStockThreshold` | Number   | ❌       | default: 10      |
+| `updatedAt`         | Date     | Auto     | timestamps: true |
 
 **Missing in current codebase:** This model doesn't exist yet. Must be created.
 
@@ -554,14 +562,14 @@ RETURN TO FRONTEND
 
 **Purpose:** Track competitor prices per product.
 
-| Field | Type | Required | Validation | Status |
-|-------|------|----------|------------|--------|
-| `_id` | ObjectId | Auto | — | ✅ |
-| `productId` | ObjectId | ✅ | ref: 'Product' | ✅ |
-| `competitorName` | String | ✅ | trim | ✅ |
-| `competitorPrice` | Number | ✅ | min: 0 | ✅ |
-| `createdAt` | Date | Auto | timestamps | ✅ |
-| `updatedAt` | Date | Auto | timestamps | ✅ |
+| Field             | Type     | Required | Validation     | Status |
+| ----------------- | -------- | -------- | -------------- | ------ |
+| `_id`             | ObjectId | Auto     | —              | ✅     |
+| `productId`       | ObjectId | ✅       | ref: 'Product' | ✅     |
+| `competitorName`  | String   | ✅       | trim           | ✅     |
+| `competitorPrice` | Number   | ✅       | min: 0         | ✅     |
+| `createdAt`       | Date     | Auto     | timestamps     | ✅     |
+| `updatedAt`       | Date     | Auto     | timestamps     | ✅     |
 
 **Assessment:** ✅ Complete and correct. No changes needed.
 
@@ -571,19 +579,19 @@ RETURN TO FRONTEND
 
 **Purpose:** Audit trail of all pricing recommendations.
 
-| Field | Type | Required | Current Status |
-|-------|------|----------|---------------|
-| `_id` | ObjectId | Auto | ✅ |
-| `productId` | ObjectId | ✅ | ❌ MISSING — must add |
-| `oldPrice` | Number | ✅ | ✅ |
-| `recommendedPrice` | Number | ✅ | ✅ |
-| `reason` | String | ✅ | ✅ |
-| `appliedRules` | [String] | ✅ | ✅ |
-| `aiExplanation` | String | ❌ | ✅ |
-| `demandScore` | Number | ❌ | ❌ MISSING |
-| `demandLevel` | String | ❌ | ❌ MISSING |
-| `inventoryLevel` | String | ❌ | ❌ MISSING |
-| `createdAt` | Date | Auto | ✅ |
+| Field              | Type     | Required | Current Status        |
+| ------------------ | -------- | -------- | --------------------- |
+| `_id`              | ObjectId | Auto     | ✅                    |
+| `productId`        | ObjectId | ✅       | ❌ MISSING — must add |
+| `oldPrice`         | Number   | ✅       | ✅                    |
+| `recommendedPrice` | Number   | ✅       | ✅                    |
+| `reason`           | String   | ✅       | ✅                    |
+| `appliedRules`     | [String] | ✅       | ✅                    |
+| `aiExplanation`    | String   | ❌       | ✅                    |
+| `demandScore`      | Number   | ❌       | ❌ MISSING            |
+| `demandLevel`      | String   | ❌       | ❌ MISSING            |
+| `inventoryLevel`   | String   | ❌       | ❌ MISSING            |
+| `createdAt`        | Date     | Auto     | ✅                    |
 
 **Fix Required:** Add `productId` as required field (currently missing completely!). Add `demandScore` and `demandLevel` for context.
 
@@ -607,14 +615,15 @@ RETURN TO FRONTEND
 
 ### Product APIs
 
-| Endpoint | Method | Status |
-|----------|--------|--------|
-| `/api/products` | POST | ❌ Missing |
-| `/api/products` | GET | ❌ Missing |
-| `/api/products/:id` | PUT | ❌ Missing |
+| Endpoint            | Method | Status     |
+| ------------------- | ------ | ---------- |
+| `/api/products`     | POST   | ❌ Missing |
+| `/api/products`     | GET    | ❌ Missing |
+| `/api/products/:id` | PUT    | ❌ Missing |
 | `/api/products/:id` | DELETE | ❌ Missing |
 
 **POST /api/products**
+
 ```json
 Request Body:
 {
@@ -635,6 +644,7 @@ Errors: 400 (validation), 500 (server)
 ```
 
 **GET /api/products**
+
 ```json
 Response 200:
 {
@@ -648,13 +658,14 @@ Response 200:
 
 ### Inventory APIs
 
-| Endpoint | Method | Status |
-|----------|--------|--------|
-| `/api/inventory` | POST | ❌ Missing |
-| `/api/inventory` | GET | ❌ Missing |
-| `/api/inventory/:id` | PUT | ❌ Missing |
+| Endpoint             | Method | Status     |
+| -------------------- | ------ | ---------- |
+| `/api/inventory`     | POST   | ❌ Missing |
+| `/api/inventory`     | GET    | ❌ Missing |
+| `/api/inventory/:id` | PUT    | ❌ Missing |
 
 **POST /api/inventory**
+
 ```json
 Request Body:
 {
@@ -670,6 +681,7 @@ Response 201:
 ```
 
 **GET /api/inventory**
+
 ```json
 Response 200:
 {
@@ -689,13 +701,14 @@ Response 200:
 
 ### Competitor Price APIs
 
-| Endpoint | Method | Status |
-|----------|--------|--------|
-| `/api/competitor-prices` | POST | ❌ Missing |
-| `/api/competitor-prices` | GET | ❌ Missing |
-| `/api/competitor-prices/:id` | PUT | ❌ Missing |
+| Endpoint                     | Method | Status     |
+| ---------------------------- | ------ | ---------- |
+| `/api/competitor-prices`     | POST   | ❌ Missing |
+| `/api/competitor-prices`     | GET    | ❌ Missing |
+| `/api/competitor-prices/:id` | PUT    | ❌ Missing |
 
 **POST /api/competitor-prices**
+
 ```json
 Request Body:
 {
@@ -709,12 +722,13 @@ Request Body:
 
 ### Pricing APIs
 
-| Endpoint | Method | Status |
-|----------|--------|--------|
-| `/api/calculate-price` | POST | ❌ Missing |
-| `/api/pricing-history` | GET | ❌ Missing |
+| Endpoint               | Method | Status     |
+| ---------------------- | ------ | ---------- |
+| `/api/calculate-price` | POST   | ❌ Missing |
+| `/api/pricing-history` | GET    | ❌ Missing |
 
 **POST /api/calculate-price** ← THE MOST IMPORTANT API
+
 ```json
 Request Body:
 {
@@ -747,6 +761,7 @@ Errors:
 ```
 
 **GET /api/pricing-history**
+
 ```json
 Query Params: ?productId=xxx&limit=20
 
@@ -761,9 +776,9 @@ Response 200:
 
 ### Dashboard API (Bonus — reduces frontend API calls)
 
-| Endpoint | Method | Status |
-|----------|--------|--------|
-| `/api/dashboard/stats` | GET | ❌ Missing |
+| Endpoint               | Method | Status     |
+| ---------------------- | ------ | ---------- |
+| `/api/dashboard/stats` | GET    | ❌ Missing |
 
 ```json
 Response 200:
@@ -782,19 +797,19 @@ Response 200:
 
 ## 5.2 Missing APIs Priority
 
-| Priority | API | Reason |
-|----------|-----|--------|
-| 🔴 P0 | POST /api/calculate-price | Core feature |
-| 🔴 P0 | GET /api/products | Everything needs products |
-| 🔴 P0 | POST /api/products | Can't demo without products |
-| 🔴 P0 | POST /api/inventory | Required for pricing engine |
-| 🔴 P0 | GET /api/inventory | Required for pricing engine |
-| 🔴 P0 | POST /api/competitor-prices | Required for pricing engine |
-| 🟡 P1 | GET /api/pricing-history | Demo requirement |
-| 🟡 P1 | PUT /api/products/:id | Product management |
-| 🟡 P1 | PUT /api/inventory/:id | Stock update |
-| 🟢 P2 | DELETE /api/products/:id | Nice to have |
-| 🟢 P2 | GET /api/dashboard/stats | Simplifies frontend |
+| Priority | API                         | Reason                      |
+| -------- | --------------------------- | --------------------------- |
+| 🔴 P0    | POST /api/calculate-price   | Core feature                |
+| 🔴 P0    | GET /api/products           | Everything needs products   |
+| 🔴 P0    | POST /api/products          | Can't demo without products |
+| 🔴 P0    | POST /api/inventory         | Required for pricing engine |
+| 🔴 P0    | GET /api/inventory          | Required for pricing engine |
+| 🔴 P0    | POST /api/competitor-prices | Required for pricing engine |
+| 🟡 P1    | GET /api/pricing-history    | Demo requirement            |
+| 🟡 P1    | PUT /api/products/:id       | Product management          |
+| 🟡 P1    | PUT /api/inventory/:id      | Stock update                |
+| 🟢 P2    | DELETE /api/products/:id    | Nice to have                |
+| 🟢 P2    | GET /api/dashboard/stats    | Simplifies frontend         |
 
 ---
 
@@ -809,6 +824,7 @@ Response 200:
 **Primary Focus:** React App Setup + UI Components
 
 ### Responsibilities
+
 - Initialize React app with Vite + Material UI
 - Build Navbar and routing structure
 - Build Dashboard page
@@ -816,15 +832,16 @@ Response 200:
 - Build Inventory management page
 
 ### Deliverables
-| Deliverable | Due |
-|-------------|-----|
-| React project initialized, MUI installed | Day 1 (June 20) |
-| Navbar + Router + 5 page shells | Day 1 |
-| Dashboard page (hardcoded data initially) | Day 2 (June 21) |
-| Product List page + Add Product form | Day 2 |
-| Inventory page | Day 3 (June 22) |
+
+| Deliverable                                 | Due                  |
+| ------------------------------------------- | -------------------- |
+| React project initialized, MUI installed    | Day 1 (June 20)      |
+| Navbar + Router + 5 page shells             | Day 1                |
+| Dashboard page (hardcoded data initially)   | Day 2 (June 21)      |
+| Product List page + Add Product form        | Day 2                |
+| Inventory page                              | Day 3 (June 22)      |
 | Connect all pages to backend APIs via Axios | Day 4–5 (June 23–24) |
-| Final polish + responsive layout | Day 6 (June 25) |
+| Final polish + responsive layout            | Day 6 (June 25)      |
 
 ### Estimated Hours: ~35–40 hours
 
@@ -835,6 +852,7 @@ Response 200:
 **Primary Focus:** Server Setup + All APIs + Database
 
 ### Responsibilities
+
 - Create `server.js` with Express
 - Create MongoDB connection (`src/config/db.js`)
 - Create all Mongoose models (Product, Inventory)
@@ -842,15 +860,16 @@ Response 200:
 - Test all APIs with Postman/Thunder Client
 
 ### Deliverables
-| Deliverable | Due |
-|-------------|-----|
-| `server.js` + `db.js` + `.env` complete | Day 1 (June 20) |
-| Product model + CRUD routes + controller | Day 1–2 |
-| Inventory model + routes + controller | Day 2 |
-| Competitor routes + controller | Day 2 |
-| Pricing history routes + controller | Day 3 |
-| All APIs tested and returning correct data | Day 3 |
-| Error handling middleware | Day 3 |
+
+| Deliverable                                | Due             |
+| ------------------------------------------ | --------------- |
+| `server.js` + `db.js` + `.env` complete    | Day 1 (June 20) |
+| Product model + CRUD routes + controller   | Day 1–2         |
+| Inventory model + routes + controller      | Day 2           |
+| Competitor routes + controller             | Day 2           |
+| Pricing history routes + controller        | Day 3           |
+| All APIs tested and returning correct data | Day 3           |
+| Error handling middleware                  | Day 3           |
 
 ### Estimated Hours: ~30–35 hours
 
@@ -861,6 +880,7 @@ Response 200:
 **Primary Focus:** Core business logic + AI integration
 
 ### Responsibilities
+
 - Implement `src/services/pricingEngine.js`
 - Implement all 4 pricing rules
 - Integrate Gemini API for AI explanations
@@ -868,14 +888,15 @@ Response 200:
 - Write test cases for the pricing engine
 
 ### Deliverables
-| Deliverable | Due |
-|-------------|-----|
-| `pricingEngine.js` with all 4 rules | Day 2 (June 21) |
-| Manual test cases (paper/console.log) | Day 2 |
-| Gemini/OpenAI API integration | Day 3 (June 22) |
-| `pricingController.js` complete | Day 3 |
-| Edge case handling (no inventory, no competitor) | Day 3 |
-| Pricing history stored correctly | Day 4 |
+
+| Deliverable                                      | Due             |
+| ------------------------------------------------ | --------------- |
+| `pricingEngine.js` with all 4 rules              | Day 2 (June 21) |
+| Manual test cases (paper/console.log)            | Day 2           |
+| Gemini/OpenAI API integration                    | Day 3 (June 22) |
+| `pricingController.js` complete                  | Day 3           |
+| Edge case handling (no inventory, no competitor) | Day 3           |
+| Pricing history stored correctly                 | Day 4           |
 
 ### Estimated Hours: ~25–30 hours
 
@@ -886,6 +907,7 @@ Response 200:
 **Primary Focus:** Pricing UI + Integration + Deployment
 
 ### Responsibilities
+
 - Build Competitor Pricing page
 - Build Pricing Recommendation page (the STAR of the demo)
 - Build Pricing History view
@@ -895,15 +917,16 @@ Response 200:
 - Write project README
 
 ### Deliverables
-| Deliverable | Due |
-|-------------|-----|
-| Competitor pricing page | Day 2 (June 21) |
-| Pricing recommendation page | Day 3 (June 22) |
-| Pricing history page/section | Day 3 |
-| Full API integration (all pages live) | Day 4–5 |
-| Backend deployed to Render | Day 5 (June 24) |
-| Frontend deployed to Vercel | Day 6 (June 25) |
-| README + documentation | Day 7 (June 26) |
+
+| Deliverable                           | Due             |
+| ------------------------------------- | --------------- |
+| Competitor pricing page               | Day 2 (June 21) |
+| Pricing recommendation page           | Day 3 (June 22) |
+| Pricing history page/section          | Day 3           |
+| Full API integration (all pages live) | Day 4–5         |
+| Backend deployed to Render            | Day 5 (June 24) |
+| Frontend deployed to Vercel           | Day 6 (June 25) |
+| README + documentation                | Day 7 (June 26) |
 
 ### Estimated Hours: ~35–40 hours
 
@@ -947,6 +970,7 @@ Examples:
 ## 7.3 Daily Git Commands (Exact)
 
 **Start of each day — sync with develop:**
+
 ```bash
 git checkout develop
 git pull origin develop
@@ -956,6 +980,7 @@ git merge develop
 ```
 
 **During work — commit often:**
+
 ```bash
 git add .
 git commit -m "feat: add product CRUD controller"
@@ -963,12 +988,14 @@ git commit -m "feat: add product CRUD controller"
 ```
 
 **Push and create PR:**
+
 ```bash
 git push origin feature/your-branch-name
 # Then create Pull Request on GitHub: feature/xxx → develop
 ```
 
 **Merge to develop (team lead approves PR):**
+
 ```bash
 # On GitHub: merge the PR
 # Then locally:
@@ -977,6 +1004,7 @@ git pull origin develop
 ```
 
 **Final merge to main (only for deployment):**
+
 ```bash
 git checkout main
 git merge develop
@@ -1016,21 +1044,21 @@ git push origin v1.0.0
 
 **All Members Start Immediately**
 
-| Task | Owner | Expected Output |
-|------|-------|----------------|
-| Initialize React frontend (`npm create vite@latest frontend -- --template react`) | M1 | React app running locally |
-| Install MUI: `npm install @mui/material @emotion/react @emotion/styled @mui/icons-material` | M1 | MUI working |
-| Install Axios: `npm install axios` | M1 | Axios installed |
-| Create `server.js` with Express, CORS, dotenv | M2 | Server runs on PORT 5000 |
-| Create `src/config/db.js` with Mongoose connection | M2 | DB connection successful |
-| Update `.env` with PORT, JWT_SECRET, GEMINI_API_KEY | M2 | No connection errors |
-| Add `dev` script to `package.json` (nodemon server.js) | M2 | `npm run dev` works |
-| Create `src/models/product.js` | M2 | Model created |
-| Create `src/models/inventory.js` | M2 | Model created |
-| Fix `pricingHistory.js` — add productId field | M3 | Model corrected |
-| Get Gemini API key from Google AI Studio | M3 | Key in .env |
-| Create GitHub branches for each member | M4 | All feature branches created |
-| Create shared Postman collection | M4 | Postman workspace ready |
+| Task                                                                                        | Owner | Expected Output              |
+| ------------------------------------------------------------------------------------------- | ----- | ---------------------------- |
+| Initialize React frontend (`npm create vite@latest frontend -- --template react`)           | M1    | React app running locally    |
+| Install MUI: `npm install @mui/material @emotion/react @emotion/styled @mui/icons-material` | M1    | MUI working                  |
+| Install Axios: `npm install axios`                                                          | M1    | Axios installed              |
+| Create `server.js` with Express, CORS, dotenv                                               | M2    | Server runs on PORT 5000     |
+| Create `src/config/db.js` with Mongoose connection                                          | M2    | DB connection successful     |
+| Update `.env` with PORT, JWT_SECRET, GEMINI_API_KEY                                         | M2    | No connection errors         |
+| Add `dev` script to `package.json` (nodemon server.js)                                      | M2    | `npm run dev` works          |
+| Create `src/models/product.js`                                                              | M2    | Model created                |
+| Create `src/models/inventory.js`                                                            | M2    | Model created                |
+| Fix `pricingHistory.js` — add productId field                                               | M3    | Model corrected              |
+| Get Gemini API key from Google AI Studio                                                    | M3    | Key in .env                  |
+| Create GitHub branches for each member                                                      | M4    | All feature branches created |
+| Create shared Postman collection                                                            | M4    | Postman workspace ready      |
 
 **Dependencies:** M2's server must be up before M3 can test pricing engine.
 **Risk:** DB connection issue → M2 must resolve before EOD.
@@ -1039,98 +1067,98 @@ git push origin v1.0.0
 
 ## Day 2 — June 20: API Development
 
-| Task | Owner | Expected Output |
-|------|-------|----------------|
-| Product routes + controller (POST, GET, PUT, DELETE) | M2 | Products CRUD working in Postman |
-| Inventory routes + controller (POST, GET, PUT) | M2 | Inventory CRUD working |
-| Error handling middleware (`src/middleware/errorHandler.js`) | M2 | Consistent error responses |
-| Navbar + React Router setup (5 page routes) | M1 | Navigation works |
-| Dashboard page layout (MUI Grid, cards) | M1 | Dashboard renders |
-| Product List page (MUI Table) | M1 | Table renders with hardcoded data |
-| Start `pricingEngine.js` — demand + inventory rules | M3 | Rules 1 & 2 working with console.log tests |
-| Competitor routes + controller | M2 | Competitor CRUD in Postman |
-| Competitor pricing page (MUI) | M4 | Competitor page renders |
+| Task                                                         | Owner | Expected Output                            |
+| ------------------------------------------------------------ | ----- | ------------------------------------------ |
+| Product routes + controller (POST, GET, PUT, DELETE)         | M2    | Products CRUD working in Postman           |
+| Inventory routes + controller (POST, GET, PUT)               | M2    | Inventory CRUD working                     |
+| Error handling middleware (`src/middleware/errorHandler.js`) | M2    | Consistent error responses                 |
+| Navbar + React Router setup (5 page routes)                  | M1    | Navigation works                           |
+| Dashboard page layout (MUI Grid, cards)                      | M1    | Dashboard renders                          |
+| Product List page (MUI Table)                                | M1    | Table renders with hardcoded data          |
+| Start `pricingEngine.js` — demand + inventory rules          | M3    | Rules 1 & 2 working with console.log tests |
+| Competitor routes + controller                               | M2    | Competitor CRUD in Postman                 |
+| Competitor pricing page (MUI)                                | M4    | Competitor page renders                    |
 
 ---
 
 ## Day 3 — June 21: Core Features Complete
 
-| Task | Owner | Expected Output |
-|------|-------|----------------|
-| Inventory management page (MUI) | M1 | Inventory page renders |
-| Add/Edit product modal (MUI Dialog) | M1 | Modal opens, form works |
-| Complete `pricingEngine.js` — competitor + time rules | M3 | All 4 rules implemented |
-| Gemini API integration (`src/services/aiService.js`) | M3 | AI explanation generates |
-| POST `/api/calculate-price` controller + route | M3 | Full pricing response in Postman |
-| Pricing recommendation page — input form | M4 | Form renders |
-| Pricing recommendation page — result display | M4 | Results display correctly |
-| Pricing history route + controller | M2 | GET /api/pricing-history works |
+| Task                                                  | Owner | Expected Output                  |
+| ----------------------------------------------------- | ----- | -------------------------------- |
+| Inventory management page (MUI)                       | M1    | Inventory page renders           |
+| Add/Edit product modal (MUI Dialog)                   | M1    | Modal opens, form works          |
+| Complete `pricingEngine.js` — competitor + time rules | M3    | All 4 rules implemented          |
+| Gemini API integration (`src/services/aiService.js`)  | M3    | AI explanation generates         |
+| POST `/api/calculate-price` controller + route        | M3    | Full pricing response in Postman |
+| Pricing recommendation page — input form              | M4    | Form renders                     |
+| Pricing recommendation page — result display          | M4    | Results display correctly        |
+| Pricing history route + controller                    | M2    | GET /api/pricing-history works   |
 
 ---
 
 ## Day 4 — June 22: Frontend-Backend Integration
 
-| Task | Owner | Expected Output |
-|------|-------|----------------|
-| Connect Dashboard → GET /api/dashboard/stats | M1 | Live data on dashboard |
-| Connect Products page → all product APIs | M1 | CRUD fully working on UI |
-| Connect Inventory page → inventory APIs | M1 | Stock management live |
-| Connect Competitor page → competitor APIs | M4 | Competitor data persists |
-| Connect Pricing page → POST /api/calculate-price | M4 | Full pricing flow works end-to-end |
-| Pricing history section | M4 | History shows past recommendations |
-| Fix any CORS / API issues | M2 | No blocked requests |
-| Edge case: no inventory record exists | M3 | Graceful handling |
+| Task                                             | Owner | Expected Output                    |
+| ------------------------------------------------ | ----- | ---------------------------------- |
+| Connect Dashboard → GET /api/dashboard/stats     | M1    | Live data on dashboard             |
+| Connect Products page → all product APIs         | M1    | CRUD fully working on UI           |
+| Connect Inventory page → inventory APIs          | M1    | Stock management live              |
+| Connect Competitor page → competitor APIs        | M4    | Competitor data persists           |
+| Connect Pricing page → POST /api/calculate-price | M4    | Full pricing flow works end-to-end |
+| Pricing history section                          | M4    | History shows past recommendations |
+| Fix any CORS / API issues                        | M2    | No blocked requests                |
+| Edge case: no inventory record exists            | M3    | Graceful handling                  |
 
 ---
 
 ## Day 5 — June 23: Full Integration Testing
 
-| Task | Owner | Expected Output |
-|------|-------|----------------|
-| End-to-end test: Add product → Set inventory → Add competitor → Calculate price | ALL | Full flow works |
-| Test all 4 pricing rules manually | M3 | Each rule fires correctly |
-| Test edge cases (0 inventory, 100 demand, no competitor) | M3 | No crashes |
-| Mobile responsiveness check | M1 | UI works on mobile viewport |
-| Fix all bugs found during testing | ALL | Zero blocking bugs |
-| Prepare Render deployment config | M4 | Render account ready |
+| Task                                                                            | Owner | Expected Output             |
+| ------------------------------------------------------------------------------- | ----- | --------------------------- |
+| End-to-end test: Add product → Set inventory → Add competitor → Calculate price | ALL   | Full flow works             |
+| Test all 4 pricing rules manually                                               | M3    | Each rule fires correctly   |
+| Test edge cases (0 inventory, 100 demand, no competitor)                        | M3    | No crashes                  |
+| Mobile responsiveness check                                                     | M1    | UI works on mobile viewport |
+| Fix all bugs found during testing                                               | ALL   | Zero blocking bugs          |
+| Prepare Render deployment config                                                | M4    | Render account ready        |
 
 ---
 
 ## Day 6 — June 24: Deployment
 
-| Task | Owner | Expected Output |
-|------|-------|----------------|
-| Deploy backend to Render | M4 | Backend URL live |
-| Set environment variables on Render | M4 | DB connects on Render |
-| Build React frontend: `npm run build` | M1 | Build succeeds |
-| Deploy frontend to Vercel | M4 | Frontend URL live |
-| Update Axios base URL to Render URL | M4 | Frontend hits live backend |
-| Smoke test on deployed URLs | ALL | Everything works in production |
+| Task                                  | Owner | Expected Output                |
+| ------------------------------------- | ----- | ------------------------------ |
+| Deploy backend to Render              | M4    | Backend URL live               |
+| Set environment variables on Render   | M4    | DB connects on Render          |
+| Build React frontend: `npm run build` | M1    | Build succeeds                 |
+| Deploy frontend to Vercel             | M4    | Frontend URL live              |
+| Update Axios base URL to Render URL   | M4    | Frontend hits live backend     |
+| Smoke test on deployed URLs           | ALL   | Everything works in production |
 
 ---
 
 ## Day 7 — June 25: Polish + Documentation
 
-| Task | Owner | Expected Output |
-|------|-------|----------------|
-| UI polish — colors, spacing, loading states | M1 | Professional look |
-| Add loading spinners (MUI CircularProgress) | M1 | No jarring UI |
-| Add success/error snackbars (MUI Alert) | M1+M4 | User feedback on actions |
-| Write README.md with setup instructions | M4 | README complete |
-| Prepare demo script (what to click and in what order) | ALL | Demo plan ready |
-| Record backup screenshots/screen recording | M4 | Screenshots saved |
+| Task                                                  | Owner | Expected Output          |
+| ----------------------------------------------------- | ----- | ------------------------ |
+| UI polish — colors, spacing, loading states           | M1    | Professional look        |
+| Add loading spinners (MUI CircularProgress)           | M1    | No jarring UI            |
+| Add success/error snackbars (MUI Alert)               | M1+M4 | User feedback on actions |
+| Write README.md with setup instructions               | M4    | README complete          |
+| Prepare demo script (what to click and in what order) | ALL   | Demo plan ready          |
+| Record backup screenshots/screen recording            | M4    | Screenshots saved        |
 
 ---
 
 ## Day 8 — June 26: Final Buffer + Dry Run
 
-| Task | Owner | Expected Output |
-|------|-------|----------------|
-| Full demo dry run (15-minute rehearsal) | ALL | Everyone knows their part |
-| Fix any remaining minor bugs | ALL | Zero bugs on demo path |
-| Verify deployed URLs still work | ALL | Live and stable |
-| Final commit to main branch | M4 | Clean repo |
-| Submit project | ALL | ✅ Submitted |
+| Task                                    | Owner | Expected Output           |
+| --------------------------------------- | ----- | ------------------------- |
+| Full demo dry run (15-minute rehearsal) | ALL   | Everyone knows their part |
+| Fix any remaining minor bugs            | ALL   | Zero bugs on demo path    |
+| Verify deployed URLs still work         | ALL   | Live and stable           |
+| Final commit to main branch             | M4    | Clean repo                |
+| Submit project                          | ALL   | ✅ Submitted              |
 
 ---
 
@@ -1175,20 +1203,20 @@ git push origin v1.0.0
 
 ## 9.3 Pricing Engine Test Cases
 
-| Test | Input | Expected Output |
-|------|-------|----------------|
-| High demand + Low inventory | demand=80, qty=5, noCompetitor | +10% adjustment |
-| Low demand + High inventory | demand=20, qty=100, noCompetitor | -10% adjustment |
-| Medium demand + Medium inventory | demand=50, qty=30, noCompetitor | 0% adjustment |
-| Competitor cheaper (>5%) | currentPrice=799, competitorAvg=740, noOtherRules | -5% adjustment |
-| Competitor more expensive (>3%) | currentPrice=799, competitorAvg=840, noOtherRules | +3% adjustment |
-| Competitor slightly cheaper (<5%) | currentPrice=799, competitorAvg=780 | 0% from Rule 2 |
-| All rules fire at once | demand=80, qty=5, competitorAvg=850, weekend=false | +13% |
-| Weekend rule | dayOfWeek=Saturday | -2% adjustment |
-| Price exceeds MAX guardrail | very high adjustments | clamped at 150% |
-| Price drops below MIN guardrail | very low adjustments | clamped at 70% |
-| Zero inventory | qty=0 | classifies as LOW → Rule 1 applies |
-| No competitor prices | empty array | Rule 2 skipped, no crash |
+| Test                              | Input                                              | Expected Output                    |
+| --------------------------------- | -------------------------------------------------- | ---------------------------------- |
+| High demand + Low inventory       | demand=80, qty=5, noCompetitor                     | +10% adjustment                    |
+| Low demand + High inventory       | demand=20, qty=100, noCompetitor                   | -10% adjustment                    |
+| Medium demand + Medium inventory  | demand=50, qty=30, noCompetitor                    | 0% adjustment                      |
+| Competitor cheaper (>5%)          | currentPrice=799, competitorAvg=740, noOtherRules  | -5% adjustment                     |
+| Competitor more expensive (>3%)   | currentPrice=799, competitorAvg=840, noOtherRules  | +3% adjustment                     |
+| Competitor slightly cheaper (<5%) | currentPrice=799, competitorAvg=780                | 0% from Rule 2                     |
+| All rules fire at once            | demand=80, qty=5, competitorAvg=850, weekend=false | +13%                               |
+| Weekend rule                      | dayOfWeek=Saturday                                 | -2% adjustment                     |
+| Price exceeds MAX guardrail       | very high adjustments                              | clamped at 150%                    |
+| Price drops below MIN guardrail   | very low adjustments                               | clamped at 70%                     |
+| Zero inventory                    | qty=0                                              | classifies as LOW → Rule 1 applies |
+| No competitor prices              | empty array                                        | Rule 2 skipped, no crash           |
 
 ## 9.4 AI Explanation Test Cases
 
@@ -1279,15 +1307,15 @@ git push origin v1.0.0
 
 # 🚨 CRITICAL RISKS & BLOCKERS
 
-| Risk | Severity | Mitigation |
-|------|----------|-----------|
-| `server.js` is empty — nothing works | 🔴 BLOCKER | Member 2 must complete this TODAY |
-| No frontend at all | 🔴 BLOCKER | Member 1 must init React app TODAY |
-| AI API key not obtained | 🔴 HIGH | Get Gemini API key free at ai.google.dev |
-| MongoDB connection string incomplete | 🔴 HIGH | Fix `MOGO_URL` typo → `MONGO_URL`, add password |
-| CORS issues blocking frontend | 🟡 MEDIUM | Set `cors({ origin: '*' })` initially for dev |
-| Time running out | 🔴 HIGH | No new features — finish what's required first |
-| `.env` has `MOGO_URL` (typo!) | 🟡 MEDIUM | Must fix to `MONGO_URL` in server.js + .env |
+| Risk                                 | Severity   | Mitigation                                      |
+| ------------------------------------ | ---------- | ----------------------------------------------- |
+| `server.js` is empty — nothing works | 🔴 BLOCKER | Member 2 must complete this TODAY               |
+| No frontend at all                   | 🔴 BLOCKER | Member 1 must init React app TODAY              |
+| AI API key not obtained              | 🔴 HIGH    | Get Gemini API key free at ai.google.dev        |
+| MongoDB connection string incomplete | 🔴 HIGH    | Fix `MOGO_URL` typo → `MONGO_URL`, add password |
+| CORS issues blocking frontend        | 🟡 MEDIUM  | Set `cors({ origin: '*' })` initially for dev   |
+| Time running out                     | 🔴 HIGH    | No new features — finish what's required first  |
+| `.env` has `MOGO_URL` (typo!)        | 🟡 MEDIUM  | Must fix to `MONGO_URL` in server.js + .env     |
 
 ---
 
@@ -1302,4 +1330,4 @@ git push origin v1.0.0
 
 ---
 
-*Audit completed by: Antigravity AI | June 19, 2026*
+_Audit completed by: Antigravity AI | June 19, 2026_

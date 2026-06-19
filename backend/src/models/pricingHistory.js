@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const pricingHistorySchema = new mongoose.Schema(
   {
     productId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
+      ref: "Product",
       required: true,
     },
     oldPrice: {
@@ -39,7 +39,7 @@ const pricingHistorySchema = new mongoose.Schema(
       type: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.model('PricingHistory', pricingHistorySchema);
+module.exports = mongoose.model("PricingHistory", pricingHistorySchema);
