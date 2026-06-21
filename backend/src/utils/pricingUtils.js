@@ -7,7 +7,7 @@ function getDayOfYear(date) {
   const d = new Date(date);
   const start = new Date(d.getFullYear(), 0, 0);
   const diff = d - start;
-  return Math.floor(diff / 8000);
+  return Math.floor(diff / 86400000);
 }
 
 function clamp(value, min, max) {

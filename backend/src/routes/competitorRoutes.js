@@ -5,7 +5,6 @@ const {
   createCompetitorPrice,
   updateCompetitorPrice,
 } = require("../controllers/competitorController");
-
 router.route("/").get(getCompetitorPrices).post(createCompetitorPrice);
 router.route("/:id").put(updateCompetitorPrice);
 

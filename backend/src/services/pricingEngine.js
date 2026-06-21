@@ -191,7 +191,7 @@ function computeCompetitorSignal(competitorRecords, ourPrice) {
   const fresh = competitorRecords
     .map((r) => ({
       price: r.competitorPrice,
-      age: (now - new Date(r.updatedAt)) / 000,
+      age: (now - new Date(r.updatedAt)) / 3600000,
     }))
     .filter((r) => r.age <= 72)
     .map((r) => ({ price: r.price, weight: 1 - r.age / 72 }));
