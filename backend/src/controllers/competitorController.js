@@ -7,12 +7,10 @@ const createCompetitorPrice = async (req, res) => {
 };
 
 const updateCompetitorPrice = async (req, res) => {
-  res
-    .status(200)
-    .json({
-      success: true,
-      message: `Update competitor price ${req.params.id}`,
-    });
+  res.status(200).json({
+    success: true,
+    message: `Update competitor price ${req.params.id}`,
+  });
 };
 
 module.exports = {
