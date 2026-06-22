@@ -27,40 +27,51 @@ export default function DashboardPage() {
 
       {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+      {/* KPI StatCards grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '1.5rem',
+          marginBottom: '2rem',
+        }}
+      >
         <StatCard
           icon={<Package />}
           label="Active Products"
-          value={stats?.products?.active || 0}
-          subtitle={`${stats?.products?.pricedToday || 0} priced today`}
+          value={stats?.products?.active ?? 0}
+          subtitle={`${stats?.products?.pricedToday ?? 0} priced today`}
           color="var(--accent-blue)"
         />
         <StatCard
           icon={<AlertCircle />}
           label="Critical Stock"
-          value={stats?.inventory?.critical || 0}
-          subtitle={`${stats?.inventory?.low || 0} low stock items`}
+          value={stats?.inventory?.critical ?? 0}
+          subtitle={`${stats?.inventory?.low ?? 0} low stock items`}
           color="var(--accent-red)"
         />
         <StatCard
           icon={<DollarSign />}
           label="Pending Prices"
-          value={stats?.pricing?.pendingRecommendations || 0}
-          subtitle={`${stats?.pricing?.appliedToday || 0} applied today`}
+          value={stats?.pricing?.pendingRecommendations ?? 0}
+          subtitle={`${stats?.pricing?.appliedToday ?? 0} applied today`}
           color="var(--accent-orange)"
         />
         <StatCard
           icon={<Activity />}
           label="Active Events"
-          value={stats?.events?.activeEvents || 0}
+          value={stats?.events?.activeEvents ?? 0}
           subtitle={`Top: ${stats?.events?.topEvent?.name || 'None'}`}
           color="var(--accent-purple)"
         />
       </div>
-      
-      {/* Additional UI (Inventory Table, Recommendations) to be built out on Day 4 polish */}
+
+      {/* Placeholder for Day 4 widgets */}
       <div className="card" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-        <p>Advanced Dashboard widgets (Recent Recommendations, Active Events details) will be polished on Day 4.</p>
+        <p>
+          Advanced dashboard widgets (recent recommendations, active events details, inventory
+          coverage table) will be polished on Day 4.
+        </p>
       </div>
     </div>
   );
