@@ -1,38 +1,19 @@
-import React from "react";
-import { Box, Tabs, Tab } from "@mui/material";
-import PageHeader from "../components/common/PageHeader";
-import EmptyState from "../components/common/EmptyState";
+import React from 'react';
+import { Warehouse } from 'lucide-react';
 
-const InventoryPage = () => {
-  const [tab, setTab] = React.useState(0);
-
-  const handleTabChange = (event, newValue) => {
-    setTab(newValue);
-  };
-
+export default function InventoryPage() {
   return (
-    <Box>
-      <PageHeader
-        title="Inventory Management"
-        breadcrumbs={[{ label: "Inventory", path: "/inventory" }]}
-      />
-
-      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-        <Tabs
-          value={tab}
-          onChange={handleTabChange}
-          aria-label="inventory tabs"
-        >
-          <Tab label="All Items (0)" />
-          <Tab label="Low Stock (0)" sx={{ color: "error.main" }} />
-          <Tab label="Medium Stock (0)" sx={{ color: "warning.main" }} />
-          <Tab label="High Stock (0)" sx={{ color: "success.main" }} />
-        </Tabs>
-      </Box>
-
-      <EmptyState message="No inventory data available." />
-    </Box>
+    <div className="animate-fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Inventory</h1>
+          <p className="page-subtitle">Stock levels, coverage days, and sale recording</p>
+        </div>
+      </div>
+      <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+        <Warehouse size={40} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.4 }} />
+        <p style={{ color: 'var(--text-muted)' }}>Inventory table and modals will be built on Day 3.</p>
+      </div>
+    </div>
   );
-};
-
-export default InventoryPage;
+}

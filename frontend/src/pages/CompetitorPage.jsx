@@ -1,37 +1,19 @@
-import React from "react";
-import { Box, Button, TextField, MenuItem } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import PageHeader from "../components/common/PageHeader";
-import EmptyState from "../components/common/EmptyState";
+import React from 'react';
+import { Users } from 'lucide-react';
 
-const CompetitorPage = () => {
+export default function CompetitorPage() {
   return (
-    <Box>
-      <PageHeader
-        title="Competitor Pricing"
-        breadcrumbs={[{ label: "Competitors", path: "/competitors" }]}
-        rightContent={
-          <Button variant="contained" startIcon={<AddIcon />}>
-            Add Competitor Price
-          </Button>
-        }
-      />
-
-      <Box sx={{ mb: 3, maxWidth: 300 }}>
-        <TextField
-          select
-          fullWidth
-          label="Filter by Product"
-          defaultValue="all"
-          size="small"
-        >
-          <MenuItem value="all">All Products</MenuItem>
-        </TextField>
-      </Box>
-
-      <EmptyState message="No competitor prices recorded yet." />
-    </Box>
+    <div className="animate-fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Competitors</h1>
+          <p className="page-subtitle">Track competitor pricing and gap analysis</p>
+        </div>
+      </div>
+      <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+        <Users size={40} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.4 }} />
+        <p style={{ color: 'var(--text-muted)' }}>Competitor management — owned by Member 4.</p>
+      </div>
+    </div>
   );
-};
-
-export default CompetitorPage;
+}

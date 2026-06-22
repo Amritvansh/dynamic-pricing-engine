@@ -1,47 +1,22 @@
-import React, { useState } from "react";
-import { Box, CssBaseline } from "@mui/material";
-import { Outlet } from "react-router-dom";
-import Navbar from "./Navbar";
-import Sidebar, { ToolbarSpace } from "./Sidebar";
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
 
-const Layout = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
+export default function Layout() {
   return (
-    <Box
-      sx={{
-        display: "flex",
-        minHeight: "100vh",
-        backgroundColor: "background.default",
-      }}
-    >
-      <CssBaseline />
-
-      <Navbar onMenuClick={handleDrawerToggle} />
-
-      <Sidebar mobileOpen={mobileOpen} onDrawerToggle={handleDrawerToggle} />
-
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - 240px)` },
-          maxWidth: "1200px",
-          margin: "0 auto",
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <Sidebar />
+      <main
+        style={{
+          marginLeft: 'var(--sidebar-width)',
+          flex: 1,
+          padding: '1.75rem 2rem',
+          minHeight: '100vh',
+          background: 'var(--bg-primary)',
         }}
       >
-        <ToolbarSpace />
-        <Box sx={{ mt: 2 }}>
-          <Outlet />
-        </Box>
-      </Box>
-    </Box>
+        <Outlet />
+      </main>
+    </div>
   );
-};
-
-export default Layout;
+}
