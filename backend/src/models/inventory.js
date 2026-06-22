@@ -7,7 +7,7 @@ const inventorySchema = new mongoose.Schema({
   lowStockThreshold: { type: Number, default: 10 },
   reorderPoint:      { type: Number, default: 20 },
 
-  // EMA DEMAND TRACKING
+  // EMA DEMAND TRACKING — updated by background job
   emaDailySales:      { type: Number, default: null },
   emaSalesUpdatedAt:  { type: Date, default: null },
   coverageDays:       { type: Number, default: null },

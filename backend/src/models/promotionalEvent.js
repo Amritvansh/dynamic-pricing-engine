@@ -21,7 +21,7 @@ const promotionalEventSchema = new mongoose.Schema({
     default: 'DRAFT'
   },
 
-  // PRIORITY
+  // PRIORITY (1 = highest, 10 = lowest)
   priority:     { type: Number, default: 5, min: 1, max: 10 },
 
   // DISCOUNT CONFIGURATION

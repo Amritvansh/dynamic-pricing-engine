@@ -12,6 +12,8 @@ const competitorPriceSchema = new mongoose.Schema({
 
 competitorPriceSchema.index({ productId: 1, updatedAt: -1 });
 competitorPriceSchema.index({ updatedAt: 1 });
+
+// TTL: auto-delete competitor records older than 30 days
 competitorPriceSchema.index({ recordedAt: 1 }, { expireAfterSeconds: 2592000 });
 
 module.exports = mongoose.model('CompetitorPrice', competitorPriceSchema);

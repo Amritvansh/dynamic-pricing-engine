@@ -1,12 +1,10 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const {
-  getInventory,
-  createInventory,
-  updateInventory,
-} = require("../controllers/inventoryController");
+const { getInventories, getInventory, createInventory, updateInventory, getCriticalInventory } = require('../controllers/inventoryController');
 
-router.route("/").get(getInventory).post(createInventory);
-router.route("/:id").put(updateInventory);
+// Static path BEFORE param path
+router.route('/status/critical').get(getCriticalInventory);
+router.route('/').get(getInventories).post(createInventory);
+router.route('/:productId').get(getInventory).patch(updateInventory);
 
 module.exports = router;
