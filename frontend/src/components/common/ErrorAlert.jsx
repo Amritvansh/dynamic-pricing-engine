@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 
-export default function ErrorAlert({ message, onDismiss }) {
+export default function ErrorAlert({ message, onDismiss, children }) {
   if (!message) return null;
 
   return (
@@ -19,9 +19,12 @@ export default function ErrorAlert({ message, onDismiss }) {
       }}
     >
       <AlertTriangle size={18} color="var(--accent-red)" style={{ flexShrink: 0, marginTop: 2 }} />
-      <p style={{ flex: 1, fontSize: '0.85rem', color: 'var(--accent-red)', lineHeight: 1.5 }}>
-        {message}
-      </p>
+      <div style={{ flex: 1 }}>
+        <p style={{ fontSize: '0.85rem', color: 'var(--accent-red)', lineHeight: 1.5 }}>
+          {message}
+        </p>
+        {children}
+      </div>
       {onDismiss && (
         <button
           onClick={onDismiss}
