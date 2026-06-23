@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 
-export default function SaleRecordModal({ isOpen, onClose, onSubmit, item }) {
+export default function SaleRecordModal({ isOpen, onClose, onSubmit, item, saleSuccess }) {
   const [form, setForm] = useState({
     quantity: '1',
     priceAtSale: '',
@@ -40,7 +40,7 @@ export default function SaleRecordModal({ isOpen, onClose, onSubmit, item }) {
         channel: form.channel,
         soldAt: new Date().toISOString(),
       });
-      onClose();
+      // Parent handles auto-close after success
     } catch (err) {
       setError(err.message);
     } finally {
@@ -100,6 +100,23 @@ export default function SaleRecordModal({ isOpen, onClose, onSubmit, item }) {
             </select>
           </div>
         </div>
+
+        {saleSuccess && (
+          <div
+            style={{
+              padding: '0.75rem',
+              background: 'rgba(34, 197, 94, 0.1)',
+              color: 'var(--accent-green)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              borderRadius: 8,
+              marginBottom: '1rem',
+              textAlign: 'center',
+            }}
+          >
+            Sale recorded ✓
+          </div>
+        )}
 
         {error && (
           <div
