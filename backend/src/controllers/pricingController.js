@@ -243,10 +243,58 @@ function _whatWouldChangeThis(signals) {
     : ["No significant threshold changes detected near current signal values"];
 }
 
+/**
+ * POST /pricing/recalculate-all
+ * Trigger batch recalculation for all active auto-mode products.
+ * Auto-applies recommendations with confidence >= 0.80 and shouldApply === true.
+ *
+ * @returns {{ success: true, data: { processed, applied, skipped, failed } }}
+ */
+const recalculateAll = async (req, res) => {
+  const products = await Product.find({
+    isActive: true,
+    "pricingStrategy.mode": "auto",
+  });
+
+  let applied = 0,
+    skipped = 0,
+    failed = 0;
+
+  for (const prod of products) {
+    try {
+      const result = await runPricingEngine(prod._id, new Date(), "api");
+
+      if (
+        result.outcome?.shouldApply &&
+        result.outcome?.confidenceScore >= 0.8
+      ) {
+        // Auto-apply: use event-discounted price if event is active, else use recommended price
+        const priceToApply = result.eventOverlay?.eventApplied
+          ? result.eventOverlay.priceAfterDiscount
+          : result.outcome.recommendedPrice;
+
+        await Product.findByIdAndUpdate(prod._id, {
+          currentPrice: priceToApply,
+        });
+        applied++;
+      } else {
+        skipped++;
+      }
+    } catch (err) {
+      console.error(`[RecalculateAll] Failed for ${prod._id}:`, err.message);
+      failed++;
+    }
+  }
+
+  const processed = applied + skipped + failed;
+  return sendSuccess(res, { processed, applied, skipped, failed });
+};
+
 module.exports = {
   calculatePrice,
   applyRecommendation,
   rejectRecommendation,
   getRecommendations,
   getProductRecommendations,
+  recalculateAll,
 };

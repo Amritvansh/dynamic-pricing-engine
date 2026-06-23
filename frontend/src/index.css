@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 /* ── Custom Dark Theme ─────────────────────────────── */
 :root {
   --bg-primary: #0f1117;
@@ -383,5 +383,3 @@ body {
   font-size: 0.9rem;
 }
 
-/* ── Google Fonts Import ─────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');

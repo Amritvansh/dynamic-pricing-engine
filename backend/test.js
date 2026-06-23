@@ -6,8 +6,9 @@ const STUBS = new Set([
   "competitorPrice",
   "pricingRecommendation",
   "settings",
+  "salesEvent",
+  "promotionalEvent",
   "demandAttribution",
-  "eventService",
   "aiService",
 ]);
 Module._load = function (request, parent, isMain) {
@@ -26,6 +27,7 @@ const {
 Module._load = _originalLoad;
 
 const { charmPrice } = require("./src/utils/pricingUtils");
+const { applyEventDiscount } = require("./src/services/eventService");
 
 let passed = 0,
   failed = 0;
@@ -135,6 +137,11 @@ assert(
   "Test 3: constraintApplied = PROFIT_FLOOR",
 );
 
+assert(
+  t3.recommendedPrice >= floor3 - 50,
+  `Test 3: recommendedPrice (${t3.recommendedPrice}) within charm tolerance of floor (${floor3})`,
+);
+
 const t4 = composePriceRecommendation({
   product: product(),
   demandSignal: {
@@ -162,6 +169,108 @@ assert(
   "Test 4: Trivial change → MINIMUM_CHANGE",
 );
 assert(t4.shouldApply === false, "Test 4: shouldApply = false");
+
+section("Test 5 — Seasonal OFF: computeSeasonalSignal with disabled global");
+
+const t5Seasonal = {
+  multiplier: 1.0,
+  phase: "disabled_global",
+  intensity: 0,
+  reason: "Seasonal pricing disabled globally",
+};
+const t5 = composePriceRecommendation({
+  product: product(),
+  demandSignal: {
+    multiplier: 1.05,
+    confidence: 0.8,
+    velocityRatio: 1.5,
+    interpretation: "RISING",
+  },
+  inventorySignal: {
+    multiplier: 1.0,
+    confidence: 1.0,
+    coverageDays: 10,
+    interpretation: "NORMAL",
+  },
+  competitorSignal: { ...NO_COMP },
+  seasonalSignal: t5Seasonal,
+});
+assert(
+  t5Seasonal.multiplier === 1.0,
+  "Test 5: Seasonal OFF → multiplier = 1.0",
+);
+assert(
+  t5Seasonal.phase === "disabled_global",
+  "Test 5: Seasonal OFF → phase = 'disabled_global'",
+);
+
+const t5SeasonalImpact = Math.abs(t5Seasonal.multiplier - 1);
+assert(
+  t5SeasonalImpact === 0,
+  "Test 5: Disabled seasonal has zero impact on price",
+);
+
+section("Test 6 — Event overlay floor clamp");
+
+const t6Product = {
+  _id: "test-product-6",
+  costPrice: 400,
+  targetMargin: 0.15,
+};
+const t6Event = {
+  _id: "test-event-6",
+  eventName: "Mega Clearance",
+  discountType: "percentage",
+  discountValue: 60,
+  respectProfitFloor: true,
+  minFinalPrice: null,
+};
+const t6Result = applyEventDiscount(t6Event, 500, t6Product);
+const t6Floor = t6Product.costPrice * (1 + t6Product.targetMargin);
+
+assert(
+  t6Result.finalCustomerPrice >= t6Floor,
+  `Test 6: finalCustomerPrice (₹${t6Result.finalCustomerPrice}) >= profit floor (₹${t6Floor})`,
+);
+assert(
+  t6Result.constraintApplied === "PROFIT_FLOOR",
+  "Test 6: eventOverlay.constraintApplied = 'PROFIT_FLOOR'",
+);
+assert(
+  t6Result.eventApplied === true,
+  "Test 6: Event was still applied (with floor clamp)",
+);
+
+section("Test 7 — Organic velocity isolation during active event");
+
+const t7AttributedDemand = {
+  shortTermRate: 2.0,
+  longTermRate: 1.0,
+  totalSalesCount: 25,
+  isEventActive: true,
+};
+
+const t7Demand = computeDemandSignal(t7AttributedDemand);
+const t7ExpectedConfidence = Math.min(1.0, 25 / 20);
+
+assert(
+  t7Demand.velocityRatio === 2.0,
+  "Test 7: velocityRatio = 2.0 (organic-only)",
+);
+assert(
+  t7Demand.interpretation === "RISING" || t7Demand.interpretation === "HIGH",
+  `Test 7: interpretation is RISING or HIGH (got: ${t7Demand.interpretation})`,
+);
+
+assert(
+  t7Demand.interpretation === "RISING",
+  `Test 7: velocityRatio 2.0 → RISING (exactly at boundary, not > 2)`,
+);
+
+assert(
+  t7Demand.confidence === t7ExpectedConfidence,
+  `Test 7: No 30% confidence penalty (confidence = ${t7Demand.confidence}, expected ${t7ExpectedConfidence})`,
+);
 
 section(
   "DEMAND SIGNAL — velocity ratio → interpretation + multiplier direction",

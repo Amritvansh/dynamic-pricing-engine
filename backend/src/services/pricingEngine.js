@@ -42,6 +42,20 @@ async function runPricingEngine(
     seasonalSignal,
   });
 
+  let eventOverlay = { eventApplied: false };
+  const activeEvent = await eventService.findActiveEventForProduct(
+    product,
+    referenceDate,
+  );
+
+  if (activeEvent) {
+    eventOverlay = eventService.applyEventDiscount(
+      activeEvent,
+      recommendation.recommendedPrice,
+      product,
+    );
+  }
+
   let aiExplanation = { text: null, failed: false };
   try {
     aiExplanation = await aiService.generateExplanation({
@@ -51,6 +65,7 @@ async function runPricingEngine(
       inventorySignal,
       competitorSignal,
       seasonalSignal,
+      eventOverlay,
     });
   } catch (e) {
     aiExplanation = { text: null, failed: true, failureReason: e.message };
@@ -83,26 +98,11 @@ async function runPricingEngine(
       seasonal: seasonalSignal,
     },
     outcome: recommendation,
+    eventOverlay: activeEvent ? eventOverlay : undefined,
     aiExplanation,
     status: "PENDING",
     triggeredBy,
   });
-
-  let eventOverlay = { eventApplied: false };
-  const activeEvent = await eventService.findActiveEventForProduct(
-    product,
-    referenceDate,
-  );
-
-  if (activeEvent) {
-    eventOverlay = eventService.applyEventDiscount(
-      activeEvent,
-      recommendation.recommendedPrice,
-      product,
-    );
-    decision.eventOverlay = eventOverlay;
-    await decision.save();
-  }
 
   await Product.findByIdAndUpdate(productId, { lastPricedAt: new Date() });
 
@@ -113,6 +113,7 @@ function computeDemandSignal(attributedDemand) {
   const { shortTermRate, longTermRate, totalSalesCount, isEventActive } =
     attributedDemand;
   const velocityRatio = longTermRate > 0 ? shortTermRate / longTermRate : 1.0;
+
   let confidence = Math.min(1.0, totalSalesCount / 20);
 
   let interpretation, baseMultiplier;
@@ -147,7 +148,9 @@ function computeDemandSignal(attributedDemand) {
 
 function computeInventorySignal(inventory, attributedDemand) {
   const { availableQuantity } = inventory;
+
   const emaDailySales = attributedDemand.longTermRate * 24 || 1;
+
   const coverageDays = availableQuantity / emaDailySales;
 
   let interpretation, multiplier;
@@ -188,6 +191,7 @@ function computeCompetitorSignal(competitorRecords, ourPrice) {
   }
 
   const now = Date.now();
+
   const fresh = competitorRecords
     .map((r) => ({
       price: r.competitorPrice,
@@ -218,6 +222,7 @@ function computeCompetitorSignal(competitorRecords, ourPrice) {
     inliers[Math.floor(inliers.length / 2)]?.price ?? ourPrice;
 
   const gapPercent = ((medianPrice - ourPrice) / ourPrice) * 100;
+
   const rawInfluence = gapPercent * 0.4;
   const clampedInfluence = Math.max(-8, Math.min(8, rawInfluence));
   const multiplier = 1.0 + clampedInfluence / 100;

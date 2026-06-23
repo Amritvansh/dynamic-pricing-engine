@@ -4,7 +4,6 @@ const cors = require("cors");
 const connectDB = require("./src/config/db");
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
@@ -42,11 +41,25 @@ app.get("/health", (req, res) => {
 const errorHandler = require("./src/middleware/errorHandler");
 app.use(errorHandler);
 
+// ── Start server ───────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Health: http://localhost:${PORT}/health`);
-  console.log(
-    `Pricing API: POST http://localhost:${PORT}/api/v1/pricing/calculate`,
+
+async function startServer() {
+  await connectDB();
+
+  // Start background scheduler after DB connects — must not crash the server
+  const { startScheduler } = require("./src/services/scheduler");
+  startScheduler().catch((err) =>
+    console.error("[Scheduler] Failed to start:", err.message),
   );
-});
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Health: http://localhost:${PORT}/health`);
+    console.log(
+      `Pricing API: POST http://localhost:${PORT}/api/v1/pricing/calculate`,
+    );
+  });
+}
+
+startServer();
