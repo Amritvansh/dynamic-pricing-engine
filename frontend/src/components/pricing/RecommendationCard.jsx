@@ -1,26 +1,38 @@
 import React from 'react';
-import { ArrowUp, ArrowDown, Tag, ShieldCheck } from 'lucide-react';
+import { ArrowUp, ArrowDown, ShieldCheck, Check, X, Tag } from 'lucide-react';
 import ConfidenceBadge from '../common/ConfidenceBadge';
 import SignalCard from '../common/SignalCard';
+import SignalBreakdown from './SignalBreakdown';
+import EventOverlayCard from './EventOverlayCard';
+import AIExplanationBox from './AIExplanationBox';
 
 /**
- * RecommendationCard — THE HERO COMPONENT
+ * RecommendationCard — THE HERO COMPONENT (Day 4 Extended)
  *
  * Displays the full pricing engine response:
  *   - Price recommendation (current → recommended with % change)
+ *   - SignalBreakdown waterfall chart
  *   - 4 signal multiplier cards (demand, inventory, competitor, seasonal)
+ *   - EventOverlayCard (if active event applies a discount)
+ *   - AIExplanationBox (Gemini explanation)
  *   - Decision summary with confidence
- *   - Event overlay section (if an active event applies a discount)
+ *   - Action buttons (Apply / Reject / Apply With/Without Discount)
  *
  * Props:
- *   result — the full `data` object from POST /pricing/calculate response
+ *   result    — the full `data` object from POST /pricing/calculate
+ *   onApply   — function(decisionId) to apply recommendation
+ *   onReject  — function(decisionId) to reject recommendation
+ *   loading   — boolean, true while pricing engine is running (for AI shimmer)
  */
-export default function RecommendationCard({ result }) {
+export default function RecommendationCard({ result, onApply, onReject, loading }) {
   if (!result) return null;
 
   const { product, pricing, signals, decision, eventOverlay, explanation, status } = result;
   const isIncrease = pricing.recommendedPrice > pricing.currentPrice;
   const isDecrease = pricing.recommendedPrice < pricing.currentPrice;
+  const isApplied = status === 'APPLIED';
+  const isRejected = status === 'REJECTED';
+  const isPending = status === 'PENDING';
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -73,12 +85,20 @@ export default function RecommendationCard({ result }) {
         {/* Status badge */}
         {status && (
           <div style={{ marginTop: '0.75rem' }}>
-            <span className={`badge ${status === 'APPLIED' ? 'badge-green' : status === 'REJECTED' ? 'badge-red' : 'badge-yellow'}`}>
-              {status}
+            <span className={`badge ${isApplied ? 'badge-green' : isRejected ? 'badge-red' : 'badge-yellow'}`}>
+              {isApplied ? 'Applied ✓' : isRejected ? 'Rejected' : status}
             </span>
           </div>
         )}
       </div>
+
+      {/* ─── Signal Breakdown Waterfall ─── */}
+      <SignalBreakdown
+        currentPrice={pricing.currentPrice}
+        signals={signals}
+        recommendation={pricing}
+        eventOverlay={eventOverlay}
+      />
 
       {/* ─── Signal Cards Grid ─── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
@@ -112,6 +132,16 @@ export default function RecommendationCard({ result }) {
         />
       </div>
 
+      {/* ─── Event Overlay ─── */}
+      <EventOverlayCard eventOverlay={eventOverlay} />
+
+      {/* ─── AI Explanation ─── */}
+      <AIExplanationBox
+        aiText={explanation?.aiText}
+        failed={explanation?.failed}
+        loading={loading}
+      />
+
       {/* ─── Decision Summary ─── */}
       <div className="card" style={{ padding: '1rem 1.25rem' }}>
         <p style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
@@ -131,54 +161,34 @@ export default function RecommendationCard({ result }) {
         </p>
       </div>
 
-      {/* ─── Event Overlay (if applicable) ─── */}
-      {eventOverlay?.eventApplied && (
-        <div className="card" style={{ borderLeft: '3px solid var(--accent-yellow)', padding: '1rem 1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            <Tag size={16} color="var(--accent-yellow)" />
-            <p style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent-yellow)' }}>
-              Active Event: {eventOverlay.eventName}
-            </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.5rem' }}>
-            <div>
-              <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Before Discount</p>
-              <p style={{ fontSize: '1.1rem', fontFamily: 'monospace', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>
-                ₹{eventOverlay.priceBeforeDiscount?.toLocaleString('en-IN')}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                {eventOverlay.discountType === 'percentage' ? `${eventOverlay.discountValue}% off` : `₹${eventOverlay.discountValue} off`}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: '0.65rem', color: 'var(--accent-yellow)', textTransform: 'uppercase', fontWeight: 600 }}>Customer Price</p>
-              <p style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'monospace', color: 'var(--accent-yellow)' }}>
-                ₹{eventOverlay.finalCustomerPrice?.toLocaleString('en-IN')}
-              </p>
-            </div>
-          </div>
-          {eventOverlay.constraintApplied !== 'NONE' && (
-            <p style={{ fontSize: '0.75rem', color: 'var(--accent-orange)', marginTop: '0.5rem' }}>
-              ⚠ Profit floor applied — discount was capped
-            </p>
-          )}
-        </div>
-      )}
+      {/* ─── Action Buttons ─── */}
+      {isPending && (
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button className="btn btn-success" style={{ flex: 1 }} onClick={() => onApply?.(result.decisionId)}>
+            <Check size={16} /> Apply ₹{pricing.recommendedPrice?.toLocaleString('en-IN')}
+          </button>
 
-      {/* ─── AI Explanation (if present) ─── */}
-      {explanation?.aiText && (
-        <div className="card" style={{ padding: '1rem 1.25rem', borderLeft: '3px solid var(--accent-indigo)' }}>
-          <p style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent-indigo)', marginBottom: '0.5rem' }}>
-            AI Explanation
-          </p>
-          <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-            {explanation.headline}
-          </p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-            {explanation.aiText}
-          </p>
+          {eventOverlay?.eventApplied && (
+            <>
+              <button
+                className="btn"
+                style={{
+                  flex: 1, background: 'rgba(249, 115, 22, 0.15)',
+                  color: 'var(--accent-orange)', border: '1px solid rgba(249, 115, 22, 0.3)',
+                }}
+                onClick={() => onApply?.(result.decisionId)}
+              >
+                <Tag size={14} /> With Discount ₹{eventOverlay.finalCustomerPrice?.toLocaleString('en-IN')}
+              </button>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => onApply?.(result.decisionId)}>
+                Without Discount ₹{eventOverlay.priceBeforeDiscount?.toLocaleString('en-IN')}
+              </button>
+            </>
+          )}
+
+          <button className="btn btn-danger" style={{ flex: '0 0 auto', minWidth: 100 }} onClick={() => onReject?.(result.decisionId)}>
+            <X size={16} /> Reject
+          </button>
         </div>
       )}
     </div>
