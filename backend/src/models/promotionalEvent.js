@@ -66,11 +66,10 @@ promotionalEventSchema.index({ targetCategories: 1 });
 promotionalEventSchema.index({ status: 1, startDate: 1, endDate: 1 });
 
 // VALIDATION: endDate must be after startDate
-promotionalEventSchema.pre('validate', function (next) {
+promotionalEventSchema.pre('validate', function () {
   if (this.endDate <= this.startDate) {
-    return next(new Error('endDate must be after startDate'));
+    throw new Error('endDate must be after startDate');
   }
-  next();
 });
 
 module.exports = mongoose.model('PromotionalEvent', promotionalEventSchema);

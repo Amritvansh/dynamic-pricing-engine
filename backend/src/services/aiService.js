@@ -28,20 +28,27 @@ async function generateExplanation({
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+    const gapDesc =
+      competitorSignal.gapPercent !== 0
+        ? `${competitorSignal.gapPercent > 0 ? "+" : ""}${competitorSignal.gapPercent}% vs our price`
+        : "near parity";
+
     let prompt = `
 You are a pricing analyst for an Indian e-commerce platform.
-Explain this pricing recommendation in 2-3 clear sentences for a business manager.
+Write a 2-3 sentence business explanation for this pricing recommendation.
+Be specific — mention numbers. Use ₹ for currency. No jargon.
 
 Product: ${product.productName} (${product.category}, ${product.tier} tier)
-Current Price: ₹${product.currentPrice}
-Recommended Price: ₹${recommendation.recommendedPrice}
-Change: ${recommendation.adjustmentPercent > 0 ? "+" : ""}${recommendation.adjustmentPercent}%
+Current Price: ₹${product.currentPrice} → Recommended: ₹${recommendation.recommendedPrice} (${recommendation.adjustmentPercent > 0 ? "+" : ""}${recommendation.adjustmentPercent}%)
+Primary driver: ${recommendation.primaryDriver}
+Constraint applied: ${recommendation.constraintApplied}
 
-Demand: ${demandSignal.interpretation} (velocity ${(demandSignal.velocityRatio || 0).toFixed(2)}× baseline)
-Inventory: ${inventorySignal.interpretation} (${inventorySignal.coverageDays} days coverage)
-Competitor: ${competitorSignal.interpretation} (median: ₹${competitorSignal.medianPrice ?? "N/A"})
-Seasonal: ${seasonalSignal.phase} (${product.seasonalConfig?.season ?? "none"})
-Confidence: ${recommendation.confidenceLevel} (${recommendation.confidenceScore})`;
+Signal details:
+- Demand: ${demandSignal.interpretation} — velocity ratio ${(demandSignal.velocityRatio || 0).toFixed(2)}× baseline (short-term vs 7-day organic rate)
+- Inventory: ${inventorySignal.interpretation} — only ${inventorySignal.coverageDays} days of stock coverage remaining
+- Competitor: ${competitorSignal.interpretation} — market median ₹${competitorSignal.medianPrice ?? "N/A"} (${gapDesc})
+- Seasonal: ${seasonalSignal.phase} season "${product.seasonalConfig?.season ?? "none"}" (multiplier ${(seasonalSignal.multiplier || 1).toFixed(3)}×)
+- Confidence: ${recommendation.confidenceLevel} (score ${recommendation.confidenceScore})`;
 
     if (eventOverlay?.eventApplied) {
       prompt += `\nActive Event: ${eventOverlay.eventName} — ${eventOverlay.discountValue}% discount applied, customer price ₹${eventOverlay.priceAfterDiscount} (before discount: ₹${eventOverlay.priceBeforeDiscount})`;
