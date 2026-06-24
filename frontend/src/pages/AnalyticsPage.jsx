@@ -1,19 +1,69 @@
-import React from 'react';
-import { BarChart3 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { getProducts } from '../api/productApi';
+import ErrorAlert from '../components/common/ErrorAlert';
+import PriceHistoryChart from '../components/analytics/PriceHistoryChart';
+import DemandTrendChart from '../components/analytics/DemandTrendChart';
+import DemandAttributionChart from '../components/analytics/DemandAttributionChart';
+import EventPerformanceCard from '../components/analytics/EventPerformanceCard';
 
 export default function AnalyticsPage() {
+  const [products, setProducts] = useState([]);
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getProducts();
+        setProducts(res.data || []);
+        if (res.data?.length > 0) {
+          setSelectedProductId(res.data[0]._id);
+        }
+      } catch (err) {
+        setError(err.message);
+      }
+    })();
+  }, []);
+
   return (
     <div className="animate-fade-in">
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
         <div>
           <h1 className="page-title">Analytics</h1>
-          <p className="page-subtitle">Price history, demand trends, and event performance</p>
+          <p className="page-subtitle">Product performance, demand attribution, and event ROI</p>
         </div>
       </div>
-      <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-        <BarChart3 size={40} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.4 }} />
-        <p style={{ color: 'var(--text-muted)' }}>Analytics page — owned by Member 4.</p>
+
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
+
+      <div className="card" style={{ padding: '1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Select Product:</label>
+        <select 
+          className="select" 
+          value={selectedProductId} 
+          onChange={(e) => setSelectedProductId(e.target.value)}
+          style={{ maxWidth: 300 }}
+        >
+          {products.map(p => (
+            <option key={p._id} value={p._id}>
+              {p.productName} ({p.sku})
+            </option>
+          ))}
+        </select>
       </div>
+
+      {!selectedProductId ? (
+        <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+          Select a product to view analytics.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem' }}>
+          <PriceHistoryChart productId={selectedProductId} />
+          <DemandTrendChart productId={selectedProductId} />
+          <DemandAttributionChart productId={selectedProductId} />
+          <EventPerformanceCard />
+        </div>
+      )}
     </div>
   );
 }
