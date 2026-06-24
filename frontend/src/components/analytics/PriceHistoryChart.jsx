@@ -1,55 +1,84 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { getPriceHistory } from '../../api/analyticsApi';
+import ErrorAlert from '../common/ErrorAlert';
 
 /**
  * PriceHistoryChart — Line chart showing price changes over time.
- * GET /analytics/price-history/:productId
+ * Self-contained: fetches its own data via productId prop.
  *
  * Props:
- *   data    — array of { date, previousPrice, newPrice }
- *   loading — boolean
+ *   productId — string, the product to load history for
  */
-export default function PriceHistoryChart({ data = [], loading }) {
-  if (loading) {
+export default function PriceHistoryChart({ productId }) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!productId) return;
+    const fetchHistory = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getPriceHistory(productId);
+        const transformed = (res.data || []).map(item => ({
+          date: new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+          recommendedPrice: item.recommendedPrice ?? item.newPrice,
+          currentPrice: item.currentPrice ?? item.previousPrice,
+        }));
+        setData(transformed);
+      } catch (err) {
+        setError('Failed to load price history.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, [productId]);
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
     return (
-      <div className="card" style={{ padding: '1.25rem' }}>
-        <div style={{ width: 120, height: 12, borderRadius: 4, background: 'var(--bg-hover)', animation: 'pulse 1.5s ease-in-out infinite', marginBottom: '1rem' }} />
-        <div style={{ width: '100%', height: 250, borderRadius: 8, background: 'var(--bg-hover)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+      <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.75rem', fontSize: '0.85rem' }}>
+        <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color, fontWeight: 500 }}>
+            {entry.name}: ₹{entry.value?.toLocaleString('en-IN')}
+          </p>
+        ))}
       </div>
     );
-  }
-
-  const chartData = data.map((d) => ({
-    date: new Date(d.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-    recommended: d.newPrice,
-    previous: d.previousPrice,
-  }));
+  };
 
   return (
-    <div className="card" style={{ padding: '1.25rem' }}>
-      <p style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+    <div className="card" style={{ padding: '1.25rem', height: 340, display: 'flex', flexDirection: 'column' }}>
+      <p style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)', marginBottom: '1rem' }}>
         Price History
       </p>
-      {chartData.length === 0 ? (
-        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-          No pricing history available yet.
+
+      {error && <ErrorAlert message={error} />}
+
+      {loading ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 30, height: 30, border: '3px solid var(--border-color)', borderTopColor: 'var(--accent-blue)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        </div>
+      ) : data.length === 0 ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+          No price history data available.
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${v}`} />
-            <Tooltip
-              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 8, fontSize: '0.8rem' }}
-              formatter={(value) => [`₹${value?.toLocaleString('en-IN')}`, undefined]}
-              labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
-            />
-            <Legend wrapperStyle={{ fontSize: '0.75rem' }} />
-            <Line type="monotone" dataKey="recommended" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} name="Recommended Price" />
-            <Line type="monotone" dataKey="previous" stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} name="Previous Price" />
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+            <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${v}`} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend wrapperStyle={{ fontSize: '0.8rem' }} />
+            <Line type="monotone" dataKey="currentPrice" name="Actual Price" stroke="var(--accent-green)" strokeWidth={2} dot={{ r: 3, fill: 'var(--accent-green)' }} activeDot={{ r: 5 }} />
+            <Line type="monotone" dataKey="recommendedPrice" name="Recommended Price" stroke="var(--accent-blue)" strokeWidth={2} dot={{ r: 3, fill: 'var(--accent-blue)' }} activeDot={{ r: 5 }} />
           </LineChart>
         </ResponsiveContainer>
       )}

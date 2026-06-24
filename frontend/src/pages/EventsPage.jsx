@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { getEvents, getActiveEvents, getUpcomingEvents, createEvent, updateEvent, deleteEvent, activateEvent, deactivateEvent } from '../api/eventApi';
+import useEvents from '../hooks/useEvents';
 import EventTable from '../components/events/EventTable';
 import EventForm from '../components/events/EventForm';
 import EventCalendar from '../components/events/EventCalendar';
 import EventPerformanceCard from '../components/analytics/EventPerformanceCard';
 import ErrorAlert from '../components/common/ErrorAlert';
+import Modal from '../components/common/Modal';
 
 const TABS = [
   { key: 'active', label: 'Active' },
@@ -15,30 +17,27 @@ const TABS = [
 
 export default function EventsPage() {
   const [activeTab, setActiveTab] = useState('active');
-  const [events, setEvents] = useState([]);
+  const { events, loading, error, setError, fetchEvents, addEvent, editEvent: editEventHook, removeEvent, activate, deactivate } = useEvents();
   const [allEvents, setAllEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [editEvent, setEditEvent] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [expandedPastId, setExpandedPastId] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
-  const fetchTabData = useCallback(async (tab) => {
-    try {
-      setLoading(true);
-      setError(null);
-      let res;
-      if (tab === 'active') res = await getActiveEvents();
-      else if (tab === 'upcoming') res = await getUpcomingEvents();
-      else res = await getEvents({ status: 'EXPIRED' });
-      setEvents(res.data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  // Fetch tab data when tab changes
+  useEffect(() => {
+    if (activeTab === 'active') {
+      fetchEvents({ status: 'ACTIVE' });
+    } else if (activeTab === 'upcoming') {
+      fetchEvents({ status: 'SCHEDULED,DRAFT' });
+    } else if (activeTab === 'past') {
+      fetchEvents({ status: 'EXPIRED,INACTIVE' });
     }
-  }, []);
+    setExpandedPastId(null);
+  }, [activeTab, fetchEvents]);
 
+  // Fetch all events for calendar
   const fetchAllEvents = useCallback(async () => {
     try {
       const res = await getEvents();
@@ -49,58 +48,65 @@ export default function EventsPage() {
   }, []);
 
   useEffect(() => {
-    fetchTabData(activeTab);
     fetchAllEvents();
-  }, [activeTab, fetchTabData, fetchAllEvents]);
+  }, [fetchAllEvents]);
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setExpandedPastId(null);
-  };
-
-  const handleCreate = async (data) => {
-    await createEvent(data);
-    fetchTabData(activeTab);
-    fetchAllEvents();
-  };
-
-  const handleEdit = (event) => {
-    setEditEvent(event);
+  const handleCreate = () => {
+    setEditingEvent(null);
     setFormOpen(true);
   };
 
-  const handleUpdate = async (data) => {
-    if (editEvent) {
-      await updateEvent(editEvent._id, data);
-      setEditEvent(null);
-      fetchTabData(activeTab);
+  const handleEdit = (event) => {
+    setEditingEvent(event);
+    setFormOpen(true);
+  };
+
+  const handleFormSubmit = async (data) => {
+    try {
+      setActionError(null);
+      if (editingEvent) {
+        await editEventHook(editingEvent._id, data);
+      } else {
+        await addEvent(data);
+      }
+      setFormOpen(false);
       fetchAllEvents();
+    } catch (err) {
+      setActionError(err.message);
+      throw err;
     }
   };
 
-  const handleDelete = async (event) => {
-    if (window.confirm(`Delete "${event.eventName}"?`)) {
-      await deleteEvent(event._id);
-      fetchTabData(activeTab);
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      setActionError(null);
+      await removeEvent(deleteTarget._id);
+      setDeleteTarget(null);
       fetchAllEvents();
+    } catch (err) {
+      setActionError(err.message);
     }
   };
 
   const handleActivate = async (id) => {
-    await activateEvent(id);
-    fetchTabData(activeTab);
-    fetchAllEvents();
+    try {
+      setActionError(null);
+      await activate(id);
+      fetchAllEvents();
+    } catch (err) {
+      setActionError(err.message);
+    }
   };
 
   const handleDeactivate = async (id) => {
-    await deactivateEvent(id);
-    fetchTabData(activeTab);
-    fetchAllEvents();
-  };
-
-  const openCreateForm = () => {
-    setEditEvent(null);
-    setFormOpen(true);
+    try {
+      setActionError(null);
+      await deactivate(id);
+      fetchAllEvents();
+    } catch (err) {
+      setActionError(err.message);
+    }
   };
 
   const togglePastExpand = (eventId) => {
@@ -114,21 +120,27 @@ export default function EventsPage() {
           <h1 className="page-title">Events</h1>
           <p className="page-subtitle">Promotional events lifecycle and performance</p>
         </div>
-        {activeTab === 'upcoming' && (
-          <button className="btn btn-primary" onClick={openCreateForm}>
-            <Plus size={16} /> Create Event
-          </button>
-        )}
+        <button className="btn btn-primary" onClick={handleCreate}>
+          <Plus size={16} /> Create Event
+        </button>
       </div>
 
-      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
+      {(error || actionError) && (
+        <ErrorAlert message={error || actionError} onDismiss={() => { setError(null); setActionError(null); }}>
+          {error && (
+            <button className="btn btn-secondary btn-sm" onClick={() => fetchEvents()} style={{ marginTop: '0.5rem' }}>
+              Retry
+            </button>
+          )}
+        </ErrorAlert>
+      )}
 
       {/* ─── Tab Bar ─── */}
       <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.25rem', background: 'var(--bg-secondary)', borderRadius: 10, padding: '0.25rem' }}>
         {TABS.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => handleTabChange(tab.key)}
+            onClick={() => setActiveTab(tab.key)}
             style={{
               flex: 1, padding: '0.6rem 1rem', borderRadius: 8,
               border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600,
@@ -164,7 +176,7 @@ export default function EventsPage() {
         <EventTable
           events={events}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={setDeleteTarget}
           onActivate={handleActivate}
           onDeactivate={handleDeactivate}
         />
@@ -236,17 +248,27 @@ export default function EventsPage() {
       )}
 
       {/* ─── Event Calendar ─── */}
-      <div style={{ marginTop: '1.5rem' }}>
-        <EventCalendar events={allEvents} />
-      </div>
+      <EventCalendar events={allEvents} />
 
       {/* ─── Event Form Modal ─── */}
       <EventForm
         isOpen={formOpen}
-        onClose={() => { setFormOpen(false); setEditEvent(null); }}
-        onSubmit={editEvent ? handleUpdate : handleCreate}
-        editEvent={editEvent}
+        onClose={() => { setFormOpen(false); setEditingEvent(null); }}
+        onSubmit={handleFormSubmit}
+        editEvent={editingEvent}
       />
+
+      {/* ─── Delete Confirmation Modal ─── */}
+      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Event">
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+          Are you sure you want to delete <strong style={{ color: 'var(--text-primary)' }}>{deleteTarget?.eventName}</strong>?
+          This action cannot be undone.
+        </p>
+        <div className="modal-actions">
+          <button className="btn btn-secondary" onClick={() => setDeleteTarget(null)}>Cancel</button>
+          <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+        </div>
+      </Modal>
     </div>
   );
 }

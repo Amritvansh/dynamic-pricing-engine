@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, LabelList, ReferenceLine
+  ComposedChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  ReferenceLine, CartesianGrid,
 } from 'recharts';
 
 /**
@@ -16,137 +17,159 @@ export default function SignalBreakdown({ currentPrice, signals, recommendation,
   const data = useMemo(() => {
     if (!currentPrice || !signals) return [];
 
-    // Build multiplicative waterfall
+    const items = [];
     let running = currentPrice;
-    const steps = [];
 
-    // Starting bar
-    steps.push({ name: 'Current', value: running, base: 0, delta: running, type: 'start' });
+    // Starting bar — Current Price
+    items.push({
+      name: 'Current',
+      start: 0,
+      end: currentPrice,
+      delta: currentPrice,
+      fill: '#60a5fa', // blue
+      label: `₹${currentPrice.toLocaleString('en-IN')}`,
+    });
 
-    // Each signal delta is multiplicative
-    const signalList = [
-      { name: 'Demand', multiplier: signals.demand?.multiplier ?? 1 },
-      { name: 'Inventory', multiplier: signals.inventory?.multiplier ?? 1 },
-      { name: 'Competitor', multiplier: signals.competitor?.multiplier ?? 1 },
-      { name: 'Seasonal', multiplier: signals.seasonal?.multiplier ?? 1 },
-    ];
+    // Demand delta
+    const demandNext = running * (signals.demand?.multiplier ?? 1);
+    const demandDelta = demandNext - running;
+    items.push({
+      name: 'Demand',
+      start: running,
+      end: demandNext,
+      delta: demandDelta,
+      fill: demandDelta > 0 ? '#34d399' : demandDelta < 0 ? '#f87171' : '#94a3b8',
+      label: `${demandDelta >= 0 ? '+' : ''}₹${Math.round(demandDelta).toLocaleString('en-IN')}`,
+    });
+    running = demandNext;
 
-    for (const sig of signalList) {
-      const newPrice = running * sig.multiplier;
-      const delta = newPrice - running;
-      steps.push({
-        name: sig.name,
-        base: delta >= 0 ? running : newPrice,
-        delta: Math.abs(delta),
-        rawDelta: delta,
-        type: delta > 0.5 ? 'positive' : delta < -0.5 ? 'negative' : 'neutral',
+    // Inventory delta
+    const invNext = running * (signals.inventory?.multiplier ?? 1);
+    const invDelta = invNext - running;
+    items.push({
+      name: 'Inventory',
+      start: running,
+      end: invNext,
+      delta: invDelta,
+      fill: invDelta > 0 ? '#34d399' : invDelta < 0 ? '#f87171' : '#94a3b8',
+      label: `${invDelta >= 0 ? '+' : ''}₹${Math.round(invDelta).toLocaleString('en-IN')}`,
+    });
+    running = invNext;
+
+    // Competitor delta
+    const compNext = running * (signals.competitor?.multiplier ?? 1);
+    const compDelta = compNext - running;
+    items.push({
+      name: 'Competitor',
+      start: running,
+      end: compNext,
+      delta: compDelta,
+      fill: compDelta > 0 ? '#34d399' : compDelta < 0 ? '#f87171' : '#94a3b8',
+      label: `${compDelta >= 0 ? '+' : ''}₹${Math.round(compDelta).toLocaleString('en-IN')}`,
+    });
+    running = compNext;
+
+    // Seasonal delta
+    const seasNext = running * (signals.seasonal?.multiplier ?? 1);
+    const seasDelta = seasNext - running;
+    items.push({
+      name: 'Seasonal',
+      start: running,
+      end: seasNext,
+      delta: seasDelta,
+      fill: seasDelta > 0 ? '#34d399' : seasDelta < 0 ? '#f87171' : '#94a3b8',
+      label: `${seasDelta >= 0 ? '+' : ''}₹${Math.round(seasDelta).toLocaleString('en-IN')}`,
+    });
+    running = seasNext;
+
+    // Final recommended price (after clamp / constraints)
+    const recPrice = recommendation?.recommendedPrice ?? running;
+    const clampDelta = recPrice - running;
+    if (Math.abs(clampDelta) > 0.5) {
+      items.push({
+        name: 'Clamp',
+        start: running,
+        end: recPrice,
+        delta: clampDelta,
+        fill: '#94a3b8', // grey
+        label: `${clampDelta >= 0 ? '+' : ''}₹${Math.round(clampDelta).toLocaleString('en-IN')}`,
       });
-      running = newPrice;
     }
 
-    // Final bar (after constraints)
-    const finalPrice = recommendation?.recommendedPrice ?? running;
-    steps.push({ name: 'Final', value: finalPrice, base: 0, delta: finalPrice, type: 'end' });
+    // Final Price bar
+    items.push({
+      name: 'Final',
+      start: 0,
+      end: recPrice,
+      delta: recPrice,
+      fill: '#818cf8', // indigo
+      label: `₹${recPrice.toLocaleString('en-IN')}`,
+    });
 
-    // Event overlay bar (if active)
-    if (eventOverlay?.eventApplied && eventOverlay.finalCustomerPrice) {
-      const eventDelta = eventOverlay.finalCustomerPrice - finalPrice;
-      steps.push({
+    // Event overlay bar (if applicable)
+    if (eventOverlay?.eventApplied) {
+      const discountDelta = (eventOverlay.finalCustomerPrice ?? 0) - (eventOverlay.priceBeforeDiscount ?? recPrice);
+      items.push({
         name: 'Event',
-        base: eventOverlay.finalCustomerPrice,
-        delta: Math.abs(eventDelta),
-        rawDelta: eventDelta,
-        type: 'event',
+        start: recPrice,
+        end: eventOverlay.finalCustomerPrice ?? recPrice,
+        delta: discountDelta,
+        fill: '#fbbf24', // amber
+        label: `${discountDelta >= 0 ? '+' : ''}₹${Math.round(discountDelta).toLocaleString('en-IN')}`,
       });
     }
 
-    return steps;
+    return items;
   }, [currentPrice, signals, recommendation, eventOverlay]);
 
   if (data.length === 0) return null;
 
-  const colorMap = {
-    start: '#3b82f6',
-    end: '#3b82f6',
-    positive: '#22c55e',
-    negative: '#ef4444',
-    neutral: '#64748b',
-    event: '#f97316',
-  };
-
-  const formatDelta = (entry) => {
-    if (entry.type === 'start') return `₹${Math.round(entry.delta).toLocaleString('en-IN')}`;
-    if (entry.type === 'end') return `₹${Math.round(entry.delta).toLocaleString('en-IN')}`;
-    if (entry.type === 'event') return `−₹${Math.round(entry.delta).toLocaleString('en-IN')}`;
-    if (!entry.rawDelta) return '';
-    const sign = entry.rawDelta > 0 ? '+' : '';
-    return `${sign}₹${Math.round(entry.rawDelta).toLocaleString('en-IN')}`;
-  };
-
-  const CustomLabel = (props) => {
-    const { x, y, width, index } = props;
-    const entry = data[index];
-    if (!entry) return null;
-    return (
-      <text
-        x={x + width / 2}
-        y={y - 8}
-        fill={colorMap[entry.type] || '#94a3b8'}
-        textAnchor="middle"
-        fontSize={11}
-        fontWeight={600}
-        fontFamily="monospace"
-      >
-        {formatDelta(entry)}
-      </text>
-    );
-  };
+  const minVal = Math.min(...data.map((d) => Math.min(d.start, d.end)));
+  const maxVal = Math.max(...data.map((d) => Math.max(d.start, d.end)));
+  const yPad = (maxVal - minVal) * 0.15;
 
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload?.[0]) return null;
-    const entry = payload[0].payload;
+    const d = payload[0].payload;
     return (
-      <div style={{
-        background: 'var(--bg-card)', border: '1px solid var(--border-color)',
-        borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.8rem',
-      }}>
-        <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{entry.name}</p>
-        <p style={{ color: colorMap[entry.type], fontFamily: 'monospace' }}>
-          {formatDelta(entry)}
-        </p>
+      <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.8rem' }}>
+        <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.2rem' }}>{d.name}</p>
+        <p style={{ color: 'var(--text-secondary)' }}>{d.label}</p>
       </div>
     );
   };
 
+  const CustomLabel = ({ x, y, width, index }) => {
+    const d = data[index];
+    if (!d) return null;
+    return (
+      <text x={x + width / 2} y={y - 6} fill="var(--text-secondary)" textAnchor="middle" fontSize={11} fontWeight={600}>
+        {d.label}
+      </text>
+    );
+  };
+
   return (
-    <div className="card" style={{ padding: '1rem 0.75rem 0.5rem' }}>
-      <p style={{
-        fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase',
-        letterSpacing: '0.05em', color: 'var(--text-muted)',
-        marginBottom: '0.75rem', paddingLeft: '0.5rem',
-      }}>
-        Signal Breakdown
+    <div className="card" style={{ padding: '1.25rem' }}>
+      <p style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+        Signal Breakdown — Price Waterfall
       </p>
-      <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={data} barCategoryGap="20%">
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
-          />
-          <YAxis hide domain={['auto', 'auto']} />
-          <Tooltip content={<CustomTooltip />} cursor={false} />
-          {/* Invisible base bar for stacking */}
-          <Bar dataKey="base" stackId="waterfall" fill="transparent" />
+      <ResponsiveContainer width="100%" height={260}>
+        <ComposedChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.3} />
+          <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <YAxis domain={[Math.max(0, minVal - yPad), maxVal + yPad]} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${v.toLocaleString('en-IN')}`} width={70} />
+          <Tooltip content={<CustomTooltip />} />
+          <ReferenceLine y={currentPrice} stroke="var(--border-color)" strokeDasharray="3 3" />
+          {/* Invisible base bar */}
+          <Bar dataKey="start" stackId="waterfall" fill="transparent" radius={0} />
           {/* Visible delta bar */}
-          <Bar dataKey="delta" stackId="waterfall" radius={[4, 4, 0, 0]}>
-            {data.map((entry, i) => (
-              <Cell key={i} fill={colorMap[entry.type] || '#64748b'} />
+          <Bar dataKey={(d) => Math.abs(d.end - d.start)} stackId="waterfall" radius={[4, 4, 0, 0]} label={<CustomLabel />}>
+            {data.map((d, i) => (
+              <Cell key={i} fill={d.fill} />
             ))}
-            <LabelList content={<CustomLabel />} />
           </Bar>
-        </BarChart>
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

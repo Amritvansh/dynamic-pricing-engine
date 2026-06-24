@@ -6,10 +6,11 @@ import { Sparkles } from 'lucide-react';
  *
  * Props:
  *   aiText   — The AI-generated explanation string
+ *   headline — Optional headline from explanation.headline
  *   failed   — Boolean, true if AI was unavailable
  *   loading  — Boolean, true while the pricing engine is still running
  */
-export default function AIExplanationBox({ aiText, failed, loading }) {
+export default function AIExplanationBox({ aiText, headline, failed, loading }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -23,10 +24,12 @@ export default function AIExplanationBox({ aiText, failed, loading }) {
   // ── Loading shimmer ──
   if (loading) {
     return (
-      <div className="card" style={{ padding: '1.25rem', borderLeft: '3px solid var(--border-color)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <div style={{ width: 16, height: 16, borderRadius: 4, background: 'var(--bg-hover)', animation: 'pulse 1.5s ease-in-out infinite' }} />
-          <div style={{ width: 100, height: 12, borderRadius: 4, background: 'var(--bg-hover)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+      <div className="card" style={{ padding: '1.25rem', borderLeft: '3px solid var(--accent-indigo)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
+          <Sparkles size={16} color="var(--accent-indigo)" />
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--accent-indigo)' }}>
+            AI Explanation
+          </span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div style={{ width: '100%', height: 12, borderRadius: 4, background: 'var(--bg-hover)', animation: 'pulse 1.5s ease-in-out infinite' }} />
@@ -62,18 +65,23 @@ export default function AIExplanationBox({ aiText, failed, loading }) {
     <div
       className="card"
       style={{
-        padding: '1rem 1.25rem',
+        padding: '1.25rem',
         borderLeft: '3px solid var(--accent-indigo)',
         transition: 'opacity 400ms ease',
         opacity: visible ? 1 : 0,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
         <Sparkles size={16} color="var(--accent-indigo)" />
-        <p style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent-indigo)' }}>
+        <span style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--accent-indigo)' }}>
           AI Explanation
-        </p>
+        </span>
       </div>
+      {headline && (
+        <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
+          {headline}
+        </p>
+      )}
       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
         {aiText}
       </p>

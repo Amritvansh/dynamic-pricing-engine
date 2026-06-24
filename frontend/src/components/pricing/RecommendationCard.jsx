@@ -5,9 +5,10 @@ import SignalCard from '../common/SignalCard';
 import SignalBreakdown from './SignalBreakdown';
 import EventOverlayCard from './EventOverlayCard';
 import AIExplanationBox from './AIExplanationBox';
+import ConfidencePanel from './ConfidencePanel';
 
 /**
- * RecommendationCard — THE HERO COMPONENT (Day 4 Extended)
+ * RecommendationCard — THE HERO COMPONENT
  *
  * Displays the full pricing engine response:
  *   - Price recommendation (current → recommended with % change)
@@ -15,16 +16,17 @@ import AIExplanationBox from './AIExplanationBox';
  *   - 4 signal multiplier cards (demand, inventory, competitor, seasonal)
  *   - EventOverlayCard (if active event applies a discount)
  *   - AIExplanationBox (Gemini explanation)
- *   - Decision summary with confidence
+ *   - ConfidencePanel
  *   - Action buttons (Apply / Reject / Apply With/Without Discount)
  *
  * Props:
- *   result    — the full `data` object from POST /pricing/calculate
- *   onApply   — function(decisionId) to apply recommendation
- *   onReject  — function(decisionId) to reject recommendation
- *   loading   — boolean, true while pricing engine is running (for AI shimmer)
+ *   result        — the full `data` object from POST /pricing/calculate
+ *   onApply       — function(decisionId, mode?) to apply recommendation
+ *   onReject      — function(decisionId) to reject recommendation
+ *   loading       — boolean, true while pricing engine is running (for AI shimmer)
+ *   actionLoading — boolean, true while apply/reject API call is in flight
  */
-export default function RecommendationCard({ result, onApply, onReject, loading }) {
+export default function RecommendationCard({ result, onApply, onReject, loading, actionLoading }) {
   if (!result) return null;
 
   const { product, pricing, signals, decision, eventOverlay, explanation, status } = result;
@@ -33,6 +35,7 @@ export default function RecommendationCard({ result, onApply, onReject, loading 
   const isApplied = status === 'APPLIED';
   const isRejected = status === 'REJECTED';
   const isPending = status === 'PENDING';
+  const isActioned = isApplied || isRejected;
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -45,7 +48,7 @@ export default function RecommendationCard({ result, onApply, onReject, loading 
               Recommendation
             </p>
             <p style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
-              {product.name} <span style={{ color: 'var(--text-muted)' }}>({product.sku})</span>
+              {product?.name || product?.productName} <span style={{ color: 'var(--text-muted)' }}>({product?.sku})</span>
             </p>
           </div>
           <ConfidenceBadge score={decision.confidenceScore} level={decision.confidenceLevel} />
@@ -84,9 +87,9 @@ export default function RecommendationCard({ result, onApply, onReject, loading 
 
         {/* Status badge */}
         {status && (
-          <div style={{ marginTop: '0.75rem' }}>
+          <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span className={`badge ${isApplied ? 'badge-green' : isRejected ? 'badge-red' : 'badge-yellow'}`}>
-              {isApplied ? 'Applied ✓' : isRejected ? 'Rejected' : status}
+              {isApplied ? 'Applied ✓' : isRejected ? 'Rejected ✗' : status}
             </span>
           </div>
         )}
@@ -138,57 +141,62 @@ export default function RecommendationCard({ result, onApply, onReject, loading 
       {/* ─── AI Explanation ─── */}
       <AIExplanationBox
         aiText={explanation?.aiText}
+        headline={explanation?.headline}
         failed={explanation?.failed}
         loading={loading}
       />
 
-      {/* ─── Decision Summary ─── */}
-      <div className="card" style={{ padding: '1rem 1.25rem' }}>
-        <p style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-          Decision
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '1.15rem', fontWeight: 700, fontFamily: 'monospace' }}>
-            ×{decision.finalMultiplier?.toFixed(3)}
-          </span>
-          <ConfidenceBadge score={decision.confidenceScore} level={decision.confidenceLevel} />
-          {decision.shouldApply && (
-            <span className="badge badge-green">Auto-Apply Eligible</span>
-          )}
-        </div>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          {decision.primaryDriver}
-        </p>
-      </div>
+      {/* ─── Confidence Panel ─── */}
+      <ConfidencePanel decision={decision} explanation={explanation} />
 
       {/* ─── Action Buttons ─── */}
       {isPending && (
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button className="btn btn-success" style={{ flex: 1 }} onClick={() => onApply?.(result.decisionId)}>
-            <Check size={16} /> Apply ₹{pricing.recommendedPrice?.toLocaleString('en-IN')}
-          </button>
+        <div className="card" style={{ padding: '1rem 1.25rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              className="btn btn-success"
+              style={{ flex: 1, minWidth: 140 }}
+              onClick={() => onApply?.(result.decisionId || result._id)}
+              disabled={actionLoading}
+            >
+              <Check size={16} /> Apply ₹{pricing.recommendedPrice?.toLocaleString('en-IN')}
+            </button>
 
-          {eventOverlay?.eventApplied && (
-            <>
-              <button
-                className="btn"
-                style={{
-                  flex: 1, background: 'rgba(249, 115, 22, 0.15)',
-                  color: 'var(--accent-orange)', border: '1px solid rgba(249, 115, 22, 0.3)',
-                }}
-                onClick={() => onApply?.(result.decisionId)}
-              >
-                <Tag size={14} /> With Discount ₹{eventOverlay.finalCustomerPrice?.toLocaleString('en-IN')}
-              </button>
-              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => onApply?.(result.decisionId)}>
-                Without Discount ₹{eventOverlay.priceBeforeDiscount?.toLocaleString('en-IN')}
-              </button>
-            </>
-          )}
+            {eventOverlay?.eventApplied && (
+              <>
+                <button
+                  className="btn"
+                  style={{
+                    flex: 1, minWidth: 140,
+                    background: 'rgba(251, 191, 36, 0.15)',
+                    color: 'var(--accent-yellow)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                  }}
+                  onClick={() => onApply?.(result.decisionId || result._id, 'with_discount')}
+                  disabled={actionLoading}
+                >
+                  <Tag size={14} /> With Discount ₹{eventOverlay.finalCustomerPrice?.toLocaleString('en-IN')}
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  style={{ flex: 1, minWidth: 140 }}
+                  onClick={() => onApply?.(result.decisionId || result._id, 'without_discount')}
+                  disabled={actionLoading}
+                >
+                  Without Discount ₹{eventOverlay.priceBeforeDiscount?.toLocaleString('en-IN')}
+                </button>
+              </>
+            )}
 
-          <button className="btn btn-danger" style={{ flex: '0 0 auto', minWidth: 100 }} onClick={() => onReject?.(result.decisionId)}>
-            <X size={16} /> Reject
-          </button>
+            <button
+              className="btn btn-danger"
+              style={{ flex: '0 0 auto', minWidth: 100 }}
+              onClick={() => onReject?.(result.decisionId || result._id)}
+              disabled={actionLoading}
+            >
+              <X size={16} /> Reject
+            </button>
+          </div>
         </div>
       )}
     </div>
