@@ -12,15 +12,15 @@ export const createCompetitor = async (data) => {
   return res.data;
 };
 
-// PATCH /api/v1/competitors/:id — Update competitor price
+// PATCH /api/v1/competitors/record/:id — Update competitor price
 export const updateCompetitor = async (id, updates) => {
-  const res = await api.patch(`/competitors/${id}`, updates);
+  const res = await api.patch(`/competitors/record/${id}`, updates);
   return res.data;
 };
 
-// DELETE /api/v1/competitors/:id — Remove competitor price
+// DELETE /api/v1/competitors/record/:id — Remove competitor price
 export const deleteCompetitor = async (id) => {
-  const res = await api.delete(`/competitors/${id}`);
+  const res = await api.delete(`/competitors/record/${id}`);
   return res.data;
 };
 
