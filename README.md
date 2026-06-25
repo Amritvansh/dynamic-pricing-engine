@@ -155,23 +155,43 @@ Seasonal pricing 3-tier control: global ON/OFF toggle, per-category exclusion ch
 ```bash
 cd backend
 npm install
-cp .env.example .env
+cp .env.example .env   # fill in your values
+node src/config/seed.js  # seed the database with demo data
+node server.js           # start the server on port 5000
 ```
 
-Edit `.env`:
-```env
-PORT=5000
-MONGO_URL=mongodb+srv://<user>:<pass>@cluster0.xxxxx.mongodb.net/dynamic-pricing
-GEMINI_API_KEY=your_gemini_api_key
-```
+### Environment Variables
 
-```bash
-# Seed demo data
-node src/config/seed.js
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `PORT` | Server port | `5000` |
+| `NODE_ENV` | Environment mode | `development` or `production` |
+| `MONGO_URL` | MongoDB Atlas connection string | `mongodb+srv://user:pass@cluster.mongodb.net/dynamic-pricing` |
+| `GEMINI_API_KEY` | Google Gemini AI API key | `AIza...` |
+| `FRONTEND_URL` | Frontend URL for CORS whitelist | `https://dynamic-pricing-engine.vercel.app` |
 
-# Start server
-npm run dev
-```
+### API Structure
+
+40+ REST endpoints across 9 resource groups. See `backend/postman_collection.json` for the complete collection.
+
+| Resource | Endpoints | Key Route |
+|----------|-----------|-----------|
+| Products | 5 | `GET /api/v1/products` |
+| Inventory | 5 | `GET /api/v1/inventory` |
+| Sales | 3 | `POST /api/v1/sales` |
+| Competitors | 5 | `GET /api/v1/competitors/:productId/analysis` |
+| **Pricing** | **6** | **`POST /api/v1/pricing/calculate`** |
+| Events | 11 | `PATCH /api/v1/events/:id/activate` |
+| Settings | 5 | `PATCH /api/v1/settings/seasonal/toggle` |
+| Dashboard | 1 | `GET /api/v1/dashboard/stats` |
+| Analytics | 5 | `GET /api/v1/analytics/demand-attribution/:productId` |
+
+### Key Design Decisions
+
+- **Append-only PricingRecommendation audit log** — every decision stores a full snapshot of all inputs (prices, inventory, competitors, demand) at decision time. If a decision was wrong, the exact context can be reconstructed.
+- **Event auto-expiry** runs on server startup and hourly via `node-cron`. Events past their `endDate` transition from ACTIVE → EXPIRED automatically.
+- **CORS** configured for `localhost:5173` (dev), `localhost:3000` (alt dev), and the Vercel production URL. Additional URLs supported via `FRONTEND_URL` env var.
+- **Health check at `/health`** responds before all API routes — used by Render to verify the service is alive and for pre-demo warm-up (free tier spins down after 15 min of inactivity).
 
 ### Frontend
 

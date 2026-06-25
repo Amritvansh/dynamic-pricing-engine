@@ -7,8 +7,31 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// ── CORS — production whitelist ────────────────────────
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://dynamic-pricing-engine.vercel.app",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
+
+// ── Health check (BEFORE all routes — Render uses this) ─
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
 
 // ── Route imports ──────────────────────────────────────
 const productRoutes = require("./src/routes/productRoutes");
@@ -32,11 +55,6 @@ app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 
-// ── Health check ───────────────────────────────────────
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
-
 // ── Error handler ──────────────────────────────────────
 const errorHandler = require("./src/middleware/errorHandler");
 app.use(errorHandler);
@@ -55,10 +73,6 @@ async function startServer() {
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log(`Health: http://localhost:${PORT}/health`);
-    console.log(
-      `Pricing API: POST http://localhost:${PORT}/api/v1/pricing/calculate`,
-    );
   });
 }
 
