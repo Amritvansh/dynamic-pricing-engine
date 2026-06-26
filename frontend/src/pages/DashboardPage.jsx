@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Package, AlertCircle, DollarSign, Activity, TrendingUp, Tag, Timer, AlertTriangle } from 'lucide-react';
 import useDashboard from '../hooks/useDashboard';
 import { getCriticalInventory } from '../api/inventoryApi';
@@ -49,24 +50,29 @@ function countdown(endDateStr) {
 }
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { stats, loading, error, setError, fetchStats } = useDashboard();
   const [criticalItems, setCriticalItems] = useState([]);
   const [activeEvents, setActiveEvents] = useState([]);
 
+  const secondaryFetched = React.useRef(false);
   // Fetch additional data after stats load
   useEffect(() => {
-    (async () => {
-      try {
-        const [critRes, eventsRes] = await Promise.allSettled([
-          getCriticalInventory(),
-          getActiveEvents(),
-        ]);
-        if (critRes.status === 'fulfilled') setCriticalItems((critRes.value.data || []).slice(0, 5));
-        if (eventsRes.status === 'fulfilled') setActiveEvents(eventsRes.value.data || []);
-      } catch (e) {
-        // non-critical — don't block dashboard
-      }
-    })();
+    if (stats && !secondaryFetched.current) {
+      secondaryFetched.current = true;
+      (async () => {
+        try {
+          const [critRes, eventsRes] = await Promise.allSettled([
+            getCriticalInventory(),
+            getActiveEvents(),
+          ]);
+          if (critRes.status === 'fulfilled') setCriticalItems((critRes.value.data || []).slice(0, 5));
+          if (eventsRes.status === 'fulfilled') setActiveEvents(eventsRes.value.data || []);
+        } catch (e) {
+          // non-critical — don't block dashboard
+        }
+      })();
+    }
   }, [stats]);
 
   // Recent recommendations from stats
@@ -187,15 +193,24 @@ export default function DashboardPage() {
                 </thead>
                 <tbody>
                   {recentRecs.slice(0, 5).map((rec, i) => (
-                    <tr key={rec._id || i}>
-                      <td style={{ fontWeight: 500, fontSize: '0.8rem' }}>{rec.productName || rec.product?.name || '—'}</td>
+                    <tr
+                      key={rec._id || i}
+                      onClick={() => {
+                        if (rec._id) {
+                          navigate(`/pricing?decision=${rec._id}`);
+                        }
+                      }}
+                      style={{ cursor: 'pointer' }}
+                      className="hover-bg"
+                    >
+                      <td style={{ fontWeight: 500, fontSize: '0.8rem' }}>{rec.productId?.productName || '—'}</td>
                       <td style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '0.8rem' }}>
-                        ₹{(rec.recommendedPrice || rec.pricing?.recommendedPrice)?.toLocaleString('en-IN') || '—'}
+                        ₹{rec.outcome?.recommendedPrice?.toLocaleString('en-IN') || '—'}
                       </td>
                       <td>
                         <ConfidenceBadge
-                          score={rec.confidenceScore ?? rec.decision?.confidenceScore ?? 0}
-                          level={rec.confidenceLevel ?? rec.decision?.confidenceLevel}
+                          score={rec.outcome?.confidenceScore ?? 0}
+                          level={rec.outcome?.confidenceLevel}
                         />
                       </td>
                       <td>

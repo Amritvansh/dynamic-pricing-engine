@@ -5,9 +5,9 @@ const SOURCES = ['manual', 'scraper', 'api', 'marketplace'];
 
 const emptyForm = {
   competitorName: '',
-  price: '',
+  competitorPrice: '',
   source: 'manual',
-  url: '',
+  competitorUrl: '',
 };
 
 export default function CompetitorForm({ isOpen, onClose, onSubmit, editItem, productId }) {
@@ -19,9 +19,9 @@ export default function CompetitorForm({ isOpen, onClose, onSubmit, editItem, pr
     if (editItem) {
       setForm({
         competitorName: editItem.competitorName || '',
-        price: editItem.price ?? '',
+        competitorPrice: editItem.competitorPrice ?? '',
         source: editItem.source || 'manual',
-        url: editItem.url || '',
+        competitorUrl: editItem.competitorUrl || '',
       });
     } else {
       setForm(emptyForm);
@@ -39,9 +39,9 @@ export default function CompetitorForm({ isOpen, onClose, onSubmit, editItem, pr
     try {
       const payload = {
         ...form,
-        price: Number(form.price),
+        competitorPrice: Number(form.competitorPrice),
         productId,
-        lastUpdated: new Date().toISOString(),
+        recordedAt: new Date().toISOString(),
       };
       await onSubmit(payload);
       onClose();
@@ -62,7 +62,7 @@ export default function CompetitorForm({ isOpen, onClose, onSubmit, editItem, pr
           </div>
           <div>
             <label className="label">Price (₹) *</label>
-            <input className="input" name="price" type="number" min="0" step="0.01" value={form.price} onChange={handleChange} required />
+            <input className="input" name="competitorPrice" type="number" min="0" step="0.01" value={form.competitorPrice} onChange={handleChange} required />
           </div>
           <div>
             <label className="label">Source</label>
@@ -74,7 +74,7 @@ export default function CompetitorForm({ isOpen, onClose, onSubmit, editItem, pr
           </div>
           <div>
             <label className="label">URL</label>
-            <input className="input" name="url" value={form.url} onChange={handleChange} placeholder="Optional product link" />
+            <input className="input" name="competitorUrl" value={form.competitorUrl} onChange={handleChange} placeholder="Optional product link" />
           </div>
         </div>
 

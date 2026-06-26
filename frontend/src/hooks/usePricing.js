@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { calculatePrice, applyDecision, rejectDecision, getRecommendations } from '../api/pricingApi';
+import { calculatePrice, applyDecision, rejectDecision, getRecommendations, getDecisionById } from '../api/pricingApi';
 
 export default function usePricing() {
   const [result, setResult] = useState(null);
@@ -23,10 +23,26 @@ export default function usePricing() {
     }
   }, []);
 
-  const apply = useCallback(async (decisionId) => {
+  const loadDecision = useCallback(async (decisionId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setResult(null);
+      const res = await getDecisionById(decisionId);
+      setResult(res.data);
+      return res.data;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const apply = useCallback(async (decisionId, mode) => {
     try {
       setError(null);
-      const res = await applyDecision(decisionId);
+      const res = await applyDecision(decisionId, mode);
       // Update result status locally
       setResult((prev) => prev ? { ...prev, status: 'APPLIED' } : prev);
       return res;
@@ -67,5 +83,6 @@ export default function usePricing() {
     apply,
     reject,
     fetchHistory,
+    loadDecision,
   };
 }

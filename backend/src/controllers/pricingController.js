@@ -51,7 +51,7 @@ const calculatePrice = async (req, res) => {
     pricing: {
       currentPrice: snap.currentPrice,
       recommendedPrice: outcome.recommendedPrice,
-      adjustmentPercent: adjustmentStr,
+      adjustmentPercent: outcome.adjustmentPercent,
       profitFloor: snap.costPrice
         ? parseFloat(
             (snap.costPrice * (1 + (product.targetMargin || 0.15))).toFixed(2),
@@ -125,7 +125,7 @@ const calculatePrice = async (req, res) => {
 
 const applyRecommendation = async (req, res) => {
   const { decisionId } = req.params;
-  const { applyWithDiscount = false } = req.body;
+  const { applyWithDiscount = false } = req.body || {};
 
   const decision = await PricingRecommendation.findById(decisionId);
   if (!decision) return sendError(res, "Recommendation not found", 404);
@@ -202,6 +202,7 @@ const getProductRecommendations = async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
 
   const records = await PricingRecommendation.find({ productId })
+    .populate('productId', 'productName sku currentPrice')
     .sort({ createdAt: -1 })
     .limit(limit);
 
@@ -290,6 +291,83 @@ const recalculateAll = async (req, res) => {
   return sendSuccess(res, { processed, applied, skipped, failed });
 };
 
+const getRecommendationById = async (req, res) => {
+  const decision = await PricingRecommendation.findById(req.params.id).populate('productId');
+  if (!decision) return sendError(res, "Recommendation not found", 404);
+
+  const product = decision.productId;
+  const snap = decision.inputSnapshot;
+  const outcome = decision.outcome;
+  const signals = decision.signals;
+  const eventOverlay = decision.eventOverlay || {};
+
+  const adjustmentStr =
+    outcome.adjustmentPercent > 0
+      ? `+${outcome.adjustmentPercent}`
+      : String(outcome.adjustmentPercent);
+
+  const priceDiff = outcome.recommendedPrice - snap.currentPrice;
+  const headline =
+    priceDiff > 0
+      ? `Price increase recommended: +₹${priceDiff} (${adjustmentStr}%)`
+      : priceDiff < 0
+        ? `Price decrease recommended: -₹${Math.abs(priceDiff)} (${adjustmentStr}%)`
+        : "No price change needed";
+
+  return sendSuccess(res, {
+    decisionId: decision._id,
+    product: {
+      _id: product._id,
+      name: product.productName,
+      sku: product.sku,
+      category: product.category,
+      tier: product.tier,
+    },
+    pricing: {
+      currentPrice: snap.currentPrice,
+      recommendedPrice: outcome.recommendedPrice,
+      adjustmentPercent: outcome.adjustmentPercent,
+      profitFloor: snap.costPrice
+        ? parseFloat((snap.costPrice * (1 + (product.targetMargin || 0.15))).toFixed(2))
+        : null,
+      priceCeiling: parseFloat((snap.currentPrice * 1.5).toFixed(2)),
+      constraintApplied: outcome.constraintApplied,
+    },
+    signals: {
+      demand: signals.demand,
+      inventory: signals.inventory,
+      competitor: signals.competitor,
+      seasonal: signals.seasonal,
+    },
+    decision: {
+      finalMultiplier: outcome.finalMultiplier || outcome.rawMultiplier,
+      confidenceScore: outcome.confidenceScore,
+      confidenceLevel: outcome.confidenceLevel,
+      shouldApply: outcome.shouldApply,
+      primaryDriver: outcome.primaryDriver,
+    },
+    eventOverlay: eventOverlay.eventName
+      ? {
+          eventApplied: true,
+          eventName: eventOverlay.eventName,
+          discountType: eventOverlay.discountType,
+          discountValue: eventOverlay.discountValue,
+          priceBeforeDiscount: eventOverlay.priceBeforeDiscount,
+          priceAfterDiscount: eventOverlay.priceAfterDiscount,
+          finalCustomerPrice: eventOverlay.priceAfterDiscount,
+          constraintApplied: eventOverlay.constraintApplied,
+        }
+      : { eventApplied: false },
+    explanation: {
+      aiText: decision.aiExplanation?.text || null,
+      headline,
+      primaryDriver: outcome.primaryDriver,
+      whatWouldChangeThis: _whatWouldChangeThis(signals),
+    },
+    status: decision.status,
+  });
+};
+
 module.exports = {
   calculatePrice,
   applyRecommendation,
@@ -297,4 +375,5 @@ module.exports = {
   getRecommendations,
   getProductRecommendations,
   recalculateAll,
+  getRecommendationById,
 };

@@ -4,11 +4,15 @@ const EventAnalytics = require('../models/eventAnalytics');
 const Product = require('../models/product');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
-// @desc    List all events (query: ?status=ACTIVE)
+// @desc    List all events (query: ?status=ACTIVE or ?status=SCHEDULED,DRAFT)
 // @route   GET /api/v1/events
 const getEvents = asyncHandler(async (req, res) => {
   const query = {};
-  if (req.query.status) query.status = req.query.status;
+  if (req.query.status) {
+    // Support comma-separated values, e.g. ?status=SCHEDULED,DRAFT
+    const statuses = req.query.status.split(',').map(s => s.trim()).filter(Boolean);
+    query.status = statuses.length === 1 ? statuses[0] : { $in: statuses };
+  }
   const events = await PromotionalEvent.find(query).sort({ startDate: 1 });
   sendSuccess(res, events);
 });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { History, Check, X } from 'lucide-react';
 import { getProducts } from '../api/productApi';
 import { getProductRecommendations, applyDecision, rejectDecision } from '../api/pricingApi';
@@ -14,23 +15,42 @@ function formatDate(d) {
 }
 
 export default function PricingPage() {
+  const [searchParams] = useSearchParams();
+  const queryDecisionId = searchParams.get('decision');
+
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const { result, loading, error, setError, calculate, apply, reject } = usePricing();
+  const { result, loading, error, setError, calculate, apply, reject, loadDecision } = usePricing();
+
+  const fetchProducts = async () => {
+    try {
+      const res = await getProducts();
+      setProducts(res.data || []);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await getProducts();
-        setProducts(res.data || []);
-      } catch (err) {
-        setError(err.message);
-      }
-    })();
+    fetchProducts();
   }, [setError]);
+
+  const decisionLoaded = React.useRef(null);
+  
+  // Auto-load if navigating from dashboard with a pre-selected decision
+  useEffect(() => {
+    if (queryDecisionId && decisionLoaded.current !== queryDecisionId) {
+      decisionLoaded.current = queryDecisionId;
+      loadDecision(queryDecisionId).then(res => {
+        if (res && res.product?._id) {
+          setSelectedProductId(res.product._id);
+        }
+      });
+    }
+  }, [queryDecisionId, loadDecision]);
 
   // Fetch pricing history when a product is selected or result changes
   const fetchHistory = async (productId) => {
@@ -59,11 +79,12 @@ export default function PricingPage() {
     }
   };
 
-  const handleApply = async (decisionId) => {
+  const handleApply = async (decisionId, mode) => {
     setActionLoading(true);
     try {
-      await apply(decisionId);
+      await apply(decisionId, mode);
       if (selectedProductId) fetchHistory(selectedProductId);
+      fetchProducts();
     } catch {
       // error set by hook
     } finally {
@@ -76,6 +97,7 @@ export default function PricingPage() {
     try {
       await reject(decisionId);
       if (selectedProductId) fetchHistory(selectedProductId);
+      fetchProducts();
     } catch {
       // error set by hook
     } finally {
@@ -89,6 +111,7 @@ export default function PricingPage() {
       if (action === 'apply') await applyDecision(id);
       else await rejectDecision(id);
       fetchHistory(selectedProductId);
+      fetchProducts();
     } catch (err) {
       setError(err.message);
     }
@@ -110,7 +133,7 @@ export default function PricingPage() {
 
         {/* Left Panel — Input */}
         <div style={{ position: 'sticky', top: '1.75rem' }}>
-          <PricingForm products={products} onCalculate={handleCalculate} loading={loading} />
+          <PricingForm products={products} onCalculate={handleCalculate} loading={loading} initialProductId={selectedProductId} />
         </div>
 
         {/* Right Panel — Results */}
@@ -188,20 +211,20 @@ export default function PricingPage() {
                             {formatDate(rec.createdAt)}
                           </td>
                           <td style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '0.85rem' }}>
-                            ₹{(rec.pricing?.recommendedPrice || rec.outcome?.recommendedPrice)?.toLocaleString('en-IN') || '—'}
+                            ₹{rec.outcome?.recommendedPrice?.toLocaleString('en-IN') || '—'}
                           </td>
                           <td style={{ fontSize: '0.8rem' }}>
                             <span style={{
-                              color: ((rec.pricing?.adjustmentPercent || rec.outcome?.adjustmentPercent) || 0) > 0 ? 'var(--accent-green)' : ((rec.pricing?.adjustmentPercent || rec.outcome?.adjustmentPercent) || 0) < 0 ? 'var(--accent-red)' : 'var(--text-muted)',
+                              color: (rec.outcome?.adjustmentPercent || 0) > 0 ? 'var(--accent-green)' : (rec.outcome?.adjustmentPercent || 0) < 0 ? 'var(--accent-red)' : 'var(--text-muted)',
                               fontFamily: 'monospace', fontWeight: 600,
                             }}>
-                              {(rec.pricing?.adjustmentPercent || rec.outcome?.adjustmentPercent) > 0 ? '+' : ''}{(rec.pricing?.adjustmentPercent || rec.outcome?.adjustmentPercent)?.toFixed(1) || '0'}%
+                              {rec.outcome?.adjustmentPercent > 0 ? '+' : ''}{rec.outcome?.adjustmentPercent?.toFixed(1) || '0'}%
                             </span>
                           </td>
                           <td>
                             <ConfidenceBadge
-                              score={rec.decision?.confidenceScore || rec.outcome?.confidenceScore || 0}
-                              level={rec.decision?.confidenceLevel || rec.outcome?.confidenceLevel}
+                              score={rec.outcome?.confidenceScore || 0}
+                              level={rec.outcome?.confidenceLevel}
                             />
                           </td>
                           <td>

@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
           <PriceHistoryChart productId={selectedProductId} />
           <DemandTrendChart productId={selectedProductId} />
           <DemandAttributionChart productId={selectedProductId} />
-          <EventPerformanceCard />
+          <EventPerformanceCard key={selectedProductId} />
         </div>
       )}
     </div>

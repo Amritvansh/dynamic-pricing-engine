@@ -6,7 +6,8 @@ import StockUpdateModal from '../components/inventory/StockUpdateModal';
 import SaleRecordModal from '../components/inventory/SaleRecordModal';
 import ErrorAlert from '../components/common/ErrorAlert';
 
-const CATEGORIES = ['Electronics', 'Clothing', 'Food', 'Books', 'Home', 'Sports', 'Beauty', 'Toys', 'Other'];
+const CATEGORIES = ['Electronics', 'Clothing', 'Food', 'Books', 'Home', 'Sports', 'Beauty', 'Toys', 'Automotive', 'Other'];
+
 
 /* Skeleton rows for loading state */
 function SkeletonTableRows({ rows = 5 }) {

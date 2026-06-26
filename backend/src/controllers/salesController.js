@@ -1,5 +1,6 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const SalesEvent = require('../models/salesEvent');
+const Inventory = require('../models/inventory');
 const Product = require('../models/product');
 const { findActiveEventForProduct } = require('../services/eventService');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
@@ -9,6 +10,10 @@ const { sendSuccess, sendError } = require('../utils/apiResponse');
 const recordSale = asyncHandler(async (req, res) => {
   const { productId, quantity, priceAtSale, channel, soldAt } = req.body;
   const saleDate = soldAt ? new Date(soldAt) : new Date();
+
+  if (!quantity || quantity <= 0) {
+    return sendError(res, 'quantity must be a positive number', 400);
+  }
 
   const product = await Product.findById(productId);
   if (!product) return sendError(res, 'Product not found', 404);
@@ -25,6 +30,27 @@ const recordSale = asyncHandler(async (req, res) => {
     eventId: activeEvent ? activeEvent._id : null,
     isPromotional: !!activeEvent,
   });
+
+  // Deduct sold quantity from inventory (floor at 0)
+  const inventory = await Inventory.findOne({ productId });
+  if (inventory) {
+    const newQty = Math.max(0, inventory.availableQuantity - quantity);
+    // Recalculate inventory status
+    const emaDailySales = inventory.emaDailySales || 1;
+    const coverageDays = emaDailySales > 0 ? newQty / emaDailySales : 0;
+    let inventoryStatus;
+    if (coverageDays === 0) inventoryStatus = 'critical';
+    else if (coverageDays < 3) inventoryStatus = 'critical';
+    else if (coverageDays < 7) inventoryStatus = 'low';
+    else if (coverageDays < 15) inventoryStatus = 'normal';
+    else inventoryStatus = 'high';
+
+    await Inventory.findByIdAndUpdate(inventory._id, {
+      availableQuantity: newQty,
+      coverageDays: parseFloat(coverageDays.toFixed(1)),
+      inventoryStatus,
+    });
+  }
 
   sendSuccess(res, sale, 201);
 });

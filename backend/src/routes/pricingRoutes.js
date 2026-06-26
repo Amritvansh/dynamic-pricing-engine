@@ -8,6 +8,7 @@ const {
   getRecommendations,
   getProductRecommendations,
   recalculateAll,
+  getRecommendationById,
 } = require("../controllers/pricingController");
 
 router.post("/calculate", asyncHandler(calculatePrice));
@@ -21,6 +22,7 @@ router.get(
   asyncHandler(getProductRecommendations),
 );
 router.get("/recommendations", asyncHandler(getRecommendations));
+router.get("/decision/:id", asyncHandler(getRecommendationById));
 
 module.exports = router;
 

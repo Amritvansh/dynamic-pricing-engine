@@ -1,16 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getEvents, createEvent, updateEvent, deleteEvent, activateEvent, deactivateEvent } from '../api/eventApi';
 
 export default function useEvents(initialParams = {}) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const lastParams = useRef(initialParams);
 
-  const fetchEvents = useCallback(async (params = initialParams) => {
+  const fetchEvents = useCallback(async (params) => {
+    // If no params provided, re-use last params to preserve tab filter
+    const effectiveParams = params !== undefined ? params : lastParams.current;
+    lastParams.current = effectiveParams;
     try {
       setLoading(true);
       setError(null);
-      const res = await getEvents(params);
+      const res = await getEvents(effectiveParams);
       setEvents(res.data || []);
     } catch (err) {
       setError(err.message);

@@ -5,13 +5,21 @@ import { Zap } from 'lucide-react';
  * PricingForm — Product selector + Calculate button.
  * On Day 2 this is a skeleton; Day 3 wires it to the real API.
  */
-export default function PricingForm({ products, onCalculate, loading }) {
-  const [selectedProductId, setSelectedProductId] = useState('');
+export default function PricingForm({ products, onCalculate, loading, initialProductId }) {
+  const [selectedProductId, setSelectedProductId] = useState(initialProductId || '');
+
+  useEffect(() => {
+    if (initialProductId) {
+      setSelectedProductId(initialProductId);
+    }
+  }, [initialProductId]);
 
   // Auto-select first product when list arrives
   useEffect(() => {
-    if (products?.length > 0 && !selectedProductId) {
-      setSelectedProductId(products[0]._id);
+    if (products?.length > 0) {
+      if (!selectedProductId || !products.find((p) => p._id === selectedProductId)) {
+        setSelectedProductId(products[0]._id);
+      }
     }
   }, [products, selectedProductId]);
 

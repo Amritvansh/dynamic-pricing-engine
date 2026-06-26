@@ -1,7 +1,8 @@
 import React from 'react';
 import { Sun } from 'lucide-react';
 
-const ALL_CATEGORIES = ['Electronics', 'Clothing', 'Food', 'Books', 'Other'];
+const ALL_CATEGORIES = ['Electronics', 'Clothing', 'Food', 'Books', 'Home', 'Sports', 'Beauty', 'Toys', 'Automotive', 'Other'];
+
 
 export default function SeasonalToggle({
   seasonalEnabled,

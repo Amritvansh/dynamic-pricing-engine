@@ -43,7 +43,7 @@ export default function CompetitorTable({ competitors, onEdit, onDelete }) {
               <tr key={c._id}>
                 <td style={{ fontWeight: 500 }}>{c.competitorName}</td>
                 <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                  ₹{c.price?.toLocaleString('en-IN')}
+                  ₹{c.competitorPrice?.toLocaleString('en-IN')}
                 </td>
                 <td>
                   <span className="badge badge-gray">{c.source || 'manual'}</span>

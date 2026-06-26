@@ -11,8 +11,10 @@ export const calculatePrice = async (productId, triggeredBy = 'manual') => {
 };
 
 // PATCH /api/v1/pricing/:decisionId/apply — Apply a pending recommendation
-export const applyDecision = async (decisionId) => {
-  const res = await api.patch(`/pricing/${decisionId}/apply`);
+export const applyDecision = async (decisionId, mode) => {
+  const res = await api.patch(`/pricing/${decisionId}/apply`, {
+    applyWithDiscount: mode === 'with_discount',
+  });
   return res.data;
 };
 
@@ -31,6 +33,12 @@ export const getRecommendations = async (params = {}) => {
 // GET /api/v1/pricing/recommendations/:productId — Product-specific history
 export const getProductRecommendations = async (productId) => {
   const res = await api.get(`/pricing/recommendations/${productId}`);
+  return res.data;
+};
+
+// GET /api/v1/pricing/decision/:decisionId — Get specific decision
+export const getDecisionById = async (decisionId) => {
+  const res = await api.get(`/pricing/decision/${decisionId}`);
   return res.data;
 };
 

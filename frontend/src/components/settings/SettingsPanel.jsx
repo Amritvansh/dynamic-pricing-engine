@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Gauge } from 'lucide-react';
+import Modal from '../common/Modal';
 
 export default function SettingsPanel({
   eventsEnabled,
@@ -12,6 +13,12 @@ export default function SettingsPanel({
 }) {
   const [interval, setInterval_] = useState(schedulerInterval);
   const [threshold, setThreshold] = useState(autoApplyThreshold);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    setInterval_(schedulerInterval);
+    setThreshold(autoApplyThreshold);
+  }, [schedulerInterval, autoApplyThreshold]);
 
   const handleToggleEvents = () => {
     onUpdateScheduler('eventsEnabled', !eventsEnabled);
@@ -21,14 +28,19 @@ export default function SettingsPanel({
     onUpdateScheduler('schedulerEnabled', !schedulerEnabled);
   };
 
-  const handleIntervalBlur = () => {
-    const val = Math.max(1, Math.min(1440, Number(interval)));
-    onUpdateScheduler('schedulerIntervalMinutes', val);
-  };
+  const hasChanges = Number(interval) !== schedulerInterval || Number(threshold) !== autoApplyThreshold;
 
-  const handleThresholdBlur = () => {
-    const val = Math.max(0, Math.min(1, Number(threshold)));
-    onUpdateScheduler('autoApplyThreshold', val);
+  const handleConfirmSave = async () => {
+    setShowConfirm(false);
+    const validInterval = Math.max(1, Math.min(1440, Number(interval)));
+    const validThreshold = Math.max(0, Math.min(1, Number(threshold)));
+    
+    if (validInterval !== schedulerInterval) {
+      await onUpdateScheduler('schedulerIntervalMinutes', validInterval);
+    }
+    if (validThreshold !== autoApplyThreshold) {
+      await onUpdateScheduler('autoApplyThreshold', validThreshold);
+    }
   };
 
   // Shared toggle renderer
@@ -89,7 +101,6 @@ export default function SettingsPanel({
               max="1440"
               value={interval}
               onChange={(e) => setInterval_(e.target.value)}
-              onBlur={handleIntervalBlur}
             />
           </div>
           <div>
@@ -102,10 +113,15 @@ export default function SettingsPanel({
               step="0.05"
               value={threshold}
               onChange={(e) => setThreshold(e.target.value)}
-              onBlur={handleThresholdBlur}
             />
           </div>
         </div>
+        {hasChanges && (
+          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => { setInterval_(schedulerInterval); setThreshold(autoApplyThreshold); }}>Cancel</button>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowConfirm(true)}>Save Settings</button>
+          </div>
+        )}
       </div>
 
       {/* Card 3 — Summary */}
@@ -131,6 +147,25 @@ export default function SettingsPanel({
           </p>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <Modal isOpen={showConfirm} onClose={() => setShowConfirm(false)} title="Confirm Scheduler Changes">
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+          Are you sure you want to update the Auto-Scheduler settings?
+        </p>
+        <ul style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.5rem', paddingLeft: '1.2rem', lineHeight: 1.6 }}>
+          {Number(interval) !== schedulerInterval && (
+            <li>Change interval from <strong>{schedulerInterval}</strong> to <strong>{interval}</strong> minutes</li>
+          )}
+          {Number(threshold) !== autoApplyThreshold && (
+            <li>Change auto-apply threshold from <strong>{autoApplyThreshold}</strong> to <strong>{threshold}</strong></li>
+          )}
+        </ul>
+        <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
+          <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleConfirmSave}>Confirm Update</button>
+        </div>
+      </Modal>
     </div>
   );
 }

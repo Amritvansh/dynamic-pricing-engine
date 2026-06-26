@@ -202,16 +202,56 @@ export default function ProductForm({ isOpen, onClose, onSubmit, editProduct }) 
         {form.seasonalConfig.season !== 'none' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
             <div>
-              <label className="label">Start (MM-DD)</label>
-              <input className="input" placeholder="06-01" value={form.seasonalConfig.startDate} onChange={(e) => handleNestedChange('seasonalConfig', 'startDate', e.target.value)} />
+              <label className="label">Start Date</label>
+              <input
+                className="input"
+                type="date"
+                value={form.seasonalConfig.startDate
+                  ? (form.seasonalConfig.startDate.includes('-') && form.seasonalConfig.startDate.length === 5
+                      ? `${new Date().getFullYear()}-${form.seasonalConfig.startDate}`
+                      : form.seasonalConfig.startDate)
+                  : ''}
+                onChange={(e) => {
+                  // Convert YYYY-MM-DD to MM-DD for storage
+                  const val = e.target.value;
+                  const mmdd = val ? val.slice(5) : '';
+                  handleNestedChange('seasonalConfig', 'startDate', mmdd);
+                }}
+              />
             </div>
             <div>
-              <label className="label">Peak (MM-DD)</label>
-              <input className="input" placeholder="07-01" value={form.seasonalConfig.peakDate} onChange={(e) => handleNestedChange('seasonalConfig', 'peakDate', e.target.value)} />
+              <label className="label">Peak Date</label>
+              <input
+                className="input"
+                type="date"
+                value={form.seasonalConfig.peakDate
+                  ? (form.seasonalConfig.peakDate.includes('-') && form.seasonalConfig.peakDate.length === 5
+                      ? `${new Date().getFullYear()}-${form.seasonalConfig.peakDate}`
+                      : form.seasonalConfig.peakDate)
+                  : ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const mmdd = val ? val.slice(5) : '';
+                  handleNestedChange('seasonalConfig', 'peakDate', mmdd);
+                }}
+              />
             </div>
             <div>
-              <label className="label">End (MM-DD)</label>
-              <input className="input" placeholder="08-01" value={form.seasonalConfig.endDate} onChange={(e) => handleNestedChange('seasonalConfig', 'endDate', e.target.value)} />
+              <label className="label">End Date</label>
+              <input
+                className="input"
+                type="date"
+                value={form.seasonalConfig.endDate
+                  ? (form.seasonalConfig.endDate.includes('-') && form.seasonalConfig.endDate.length === 5
+                      ? `${new Date().getFullYear()}-${form.seasonalConfig.endDate}`
+                      : form.seasonalConfig.endDate)
+                  : ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const mmdd = val ? val.slice(5) : '';
+                  handleNestedChange('seasonalConfig', 'endDate', mmdd);
+                }}
+              />
             </div>
           </div>
         )}
