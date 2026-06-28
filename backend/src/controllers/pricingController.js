@@ -127,9 +127,12 @@ const applyRecommendation = async (req, res) => {
   const { decisionId } = req.params;
   const { applyWithDiscount = false } = req.body || {};
 
+  console.log(`[Apply] decisionId: ${decisionId}, mode: ${applyWithDiscount}`);
+
   const decision = await PricingRecommendation.findById(decisionId);
   if (!decision) return sendError(res, "Recommendation not found", 404);
   if (decision.status !== "PENDING") {
+    console.log(`[Apply] Cannot apply, status is ${decision.status}`);
     return sendError(
       res,
       `Cannot apply — recommendation is already ${decision.status}`,
@@ -160,7 +163,7 @@ const applyRecommendation = async (req, res) => {
 
 const rejectRecommendation = async (req, res) => {
   const { decisionId } = req.params;
-  const { reason = "" } = req.body;
+  const { reason = "" } = req.body || {};
 
   const decision = await PricingRecommendation.findById(decisionId);
   if (!decision) return sendError(res, "Recommendation not found", 404);

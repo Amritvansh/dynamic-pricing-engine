@@ -4,7 +4,7 @@ const salesEventSchema = new mongoose.Schema({
   productId:     { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
   quantity:      { type: Number, required: true, min: 1 },
   priceAtSale:   { type: Number, required: true, min: 0 },
-  channel:       { type: String, enum: ['web', 'mobile', 'store', 'manual'], default: 'manual' },
+  channel:       { type: String, enum: ['web', 'mobile', 'store', 'manual', 'app', 'marketplace', 'retail'], default: 'manual' },
 
   // DEMAND ATTRIBUTION — the key field
   eventId:       { type: mongoose.Schema.Types.ObjectId, ref: 'PromotionalEvent', default: null },

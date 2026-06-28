@@ -21,6 +21,8 @@ const errorHandler = (err, req, res, next) => {
     message = Object.values(err.errors).map(e => e.message).join(', ');
   }
 
+  console.error(`[Error Handler] ${statusCode}: ${message}`, err.stack);
+
   res.status(statusCode).json({
     success: false,
     error: message,

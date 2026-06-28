@@ -3,18 +3,44 @@ const CompetitorPrice = require('../models/competitorPrice');
 const Product = require('../models/product');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
+function getOutlierThresholds(prices, ourPrice) {
+  if (prices.length >= 4) {
+    const sorted = [...prices].sort((a, b) => a - b);
+    const q1 = sorted[Math.floor(sorted.length * 0.25)];
+    const q3 = sorted[Math.floor(sorted.length * 0.75)];
+    const iqr = q3 - q1;
+    return { min: q1 - 1.5 * iqr, max: q3 + 1.5 * iqr };
+  } else if (ourPrice > 0) {
+    return { min: ourPrice * 0.4, max: ourPrice * 2.5 };
+  }
+  return { min: 0, max: Infinity };
+}
+
 // @desc    List competitor prices for product (with dynamic staleness)
 // @route   GET /api/v1/competitors/:productId
 const getCompetitors = asyncHandler(async (req, res) => {
   const competitors = await CompetitorPrice.find({ productId: req.params.productId }).sort({ recordedAt: -1 });
+  const product = await Product.findById(req.params.productId);
+  const ourPrice = product ? product.currentPrice : 0;
 
-  // Compute dynamic staleness per Part 10
   const now = Date.now();
+  
+  const freshPrices = competitors
+    .map(c => ({ price: c.competitorPrice, age: (now - new Date(c.updatedAt).getTime()) / 3_600_000 }))
+    .filter(c => c.age <= 72)
+    .map(c => c.price);
+    
+  const { min: outMin, max: outMax } = getOutlierThresholds(freshPrices, ourPrice);
+
   const data = competitors.map(c => {
     const ageHours = (now - new Date(c.updatedAt).getTime()) / 3_600_000;
+    const isFresh = ageHours <= 72;
+    const isOutlier = isFresh && (c.competitorPrice < outMin || c.competitorPrice > outMax);
+    
     return {
       ...c.toObject(),
       stalenessScore: parseFloat(Math.max(0, 1 - ageHours / 72).toFixed(2)),
+      isOutlier
     };
   });
 
@@ -72,12 +98,11 @@ const getCompetitorAnalysis = asyncHandler(async (req, res) => {
     });
   }
 
-  // IQR outlier rejection
-  const prices = fresh.map(r => r.price).sort((a, b) => a - b);
-  const q1 = prices[Math.floor(prices.length * 0.25)] ?? prices[0];
-  const q3 = prices[Math.floor(prices.length * 0.75)] ?? prices[prices.length - 1];
-  const iqr = q3 - q1;
-  const inliers = fresh.filter(r => r.price >= q1 - 1.5 * iqr && r.price <= q3 + 1.5 * iqr);
+  // Robust outlier rejection using shared logic
+  const freshPrices = fresh.map(r => r.price);
+  const { min: outMin, max: outMax } = getOutlierThresholds(freshPrices, ourPrice);
+  
+  const inliers = fresh.filter(r => r.price >= outMin && r.price <= outMax);
   const outlierCount = fresh.length - inliers.length;
   const medianPrice = inliers.length > 0
     ? inliers.map(r => r.price).sort((a, b) => a - b)[Math.floor(inliers.length / 2)]
