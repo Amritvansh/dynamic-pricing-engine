@@ -9,7 +9,7 @@
 
 | Service | URL |
 |---------|-----|
-| **Frontend** | `https://dynamic-pricing-engine.vercel.app` |
+| **Frontend** | `https://dynamic-pricing-frontend-theta.vercel.app` |
 | **Backend API** | `https://dynamic-pricing-engine-api.onrender.com` |
 
 > **Note:** Render backend may cold-start in ~60 seconds. Hit `GET /health` to wake it before demo.
