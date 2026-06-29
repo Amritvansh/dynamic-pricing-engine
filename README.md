@@ -6,8 +6,8 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green?style=flat-square&logo=node.js)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://react.dev/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com/atlas)
-<a href="https://dynamic-pricing-frontend-theta.vercel.app" target="_blank"><img src="https://img.shields.io/badge/Frontend-Vercel-black?style=flat-square&logo=vercel" alt="Frontend" /></a>
-<a href="https://dynamic-pricing-engine-m3u7.onrender.com/health" target="_blank"><img src="https://img.shields.io/badge/Backend-Render-46E3B7?style=flat-square&logo=render" alt="Backend" /></a>
+[![Frontend](https://img.shields.io/badge/Frontend-Vercel-black?style=flat-square&logo=vercel)](https://dynamic-pricing-frontend-theta.vercel.app)
+[![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=flat-square&logo=render)](https://dynamic-pricing-engine-m3u7.onrender.com/health)
 
 ---
 
@@ -50,9 +50,9 @@ Traditional rule-based pricing systems rely on rigid `if/else` logic — *"if de
 
 | Service | URL |
 |---------|-----|
-| **Frontend** | <a href="https://dynamic-pricing-frontend-theta.vercel.app" target="_blank">https://dynamic-pricing-frontend-theta.vercel.app</a> |
-| **Backend API** | <a href="https://dynamic-pricing-engine-m3u7.onrender.com" target="_blank">https://dynamic-pricing-engine-m3u7.onrender.com</a> |
-| **Health Check** | <a href="https://dynamic-pricing-engine-m3u7.onrender.com/health" target="_blank">https://dynamic-pricing-engine-m3u7.onrender.com/health</a> |
+| **Frontend** | [https://dynamic-pricing-frontend-theta.vercel.app](https://dynamic-pricing-frontend-theta.vercel.app) |
+| **Backend API** | [https://dynamic-pricing-engine-m3u7.onrender.com](https://dynamic-pricing-engine-m3u7.onrender.com) |
+| **Health Check** | [https://dynamic-pricing-engine-m3u7.onrender.com/health](https://dynamic-pricing-engine-m3u7.onrender.com/health) |
 
 > **Note:** The backend is hosted on Render's free tier and may cold-start in ~60 seconds after a period of inactivity. Hit the `/health` endpoint to wake it up before using the app.
 
