@@ -47,6 +47,13 @@ const getProduct = asyncHandler(async (req, res) => {
 // @route   POST /api/v1/products
 const createProduct = asyncHandler(async (req, res) => {
   const product = await Product.create(req.body);
+  
+  // Auto-create an initial inventory record
+  await Inventory.create({
+    productId: product._id,
+    availableQuantity: req.body.initialQuantity || 0
+  });
+
   sendSuccess(res, product, 201);
 });
 
