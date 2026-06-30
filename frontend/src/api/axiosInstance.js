@@ -3,11 +3,11 @@ import axios from 'axios';
 const TOKEN_KEY = 'dpe_auth_token';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
+  baseURL: (import.meta.env.VITE_API_URL || '').trim() || 'http://localhost:5000/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 60000,
 });
 
 // ── Request interceptor — attach JWT from localStorage ───
