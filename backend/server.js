@@ -10,6 +10,7 @@ const app = express();
 // ── CORS — production whitelist ────────────────────────
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "http://localhost:3000",
   "https://dynamic-pricing-frontend-theta.vercel.app",
   process.env.FRONTEND_URL,
@@ -17,7 +18,18 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin(origin, callback) {
+      console.log("Incoming Origin:", origin);
+      console.log("Allowed Origins:", allowedOrigins);
+
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
@@ -34,6 +46,7 @@ app.get("/health", (req, res) => {
 });
 
 // ── Route imports ──────────────────────────────────────
+const authRoutes = require("./src/routes/authRoutes");
 const productRoutes = require("./src/routes/productRoutes");
 const inventoryRoutes = require("./src/routes/inventoryRoutes");
 const competitorRoutes = require("./src/routes/competitorRoutes");
@@ -43,17 +56,22 @@ const eventRoutes = require("./src/routes/eventRoutes");
 const settingsRoutes = require("./src/routes/settingsRoutes");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
 const analyticsRoutes = require("./src/routes/analyticsRoutes");
+const { protect } = require("./src/middleware/auth");
 
 // ── Mount routes ───────────────────────────────────────
-app.use("/api/v1/products", productRoutes);
-app.use("/api/v1/inventory", inventoryRoutes);
-app.use("/api/v1/competitors", competitorRoutes);
-app.use("/api/v1/pricing", pricingRoutes);
-app.use("/api/v1/sales", salesRoutes);
-app.use("/api/v1/events", eventRoutes);
-app.use("/api/v1/settings", settingsRoutes);
-app.use("/api/v1/dashboard", dashboardRoutes);
-app.use("/api/v1/analytics", analyticsRoutes);
+// Auth routes — public (no protect middleware)
+app.use("/api/v1/auth", authRoutes);
+
+// All business routes — protected (JWT required)
+app.use("/api/v1/products", protect, productRoutes);
+app.use("/api/v1/inventory", protect, inventoryRoutes);
+app.use("/api/v1/competitors", protect, competitorRoutes);
+app.use("/api/v1/pricing", protect, pricingRoutes);
+app.use("/api/v1/sales", protect, salesRoutes);
+app.use("/api/v1/events", protect, eventRoutes);
+app.use("/api/v1/settings", protect, settingsRoutes);
+app.use("/api/v1/dashboard", protect, dashboardRoutes);
+app.use("/api/v1/analytics", protect, analyticsRoutes);
 
 // ── Error handler ──────────────────────────────────────
 const errorHandler = require("./src/middleware/errorHandler");

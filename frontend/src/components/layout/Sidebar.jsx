@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Package,
@@ -10,7 +10,11 @@ import {
   CalendarRange,
   Settings,
   Zap,
+  LogOut,
+  ShieldCheck,
+  User,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { to: '/',            label: 'Dashboard',   icon: LayoutDashboard },
@@ -24,6 +28,14 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <aside
       style={{
@@ -114,16 +126,97 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* Footer */}
+      {/* User info + Logout */}
       <div
         style={{
-          padding: '1rem 1.25rem',
           borderTop: '1px solid var(--border-color)',
-          fontSize: '0.7rem',
-          color: 'var(--text-muted)',
         }}
       >
-        v1.0 · Pricing Engine
+        {/* User info */}
+        {user && (
+          <div
+            style={{
+              padding: '0.85rem 1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              borderBottom: '1px solid var(--border-color)',
+            }}
+          >
+            <div
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--accent-indigo), var(--accent-purple))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <User size={14} color="#fff" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {user.name}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.1rem' }}>
+                <ShieldCheck size={10} color={user.role === 'admin' ? 'var(--accent-indigo)' : 'var(--text-muted)'} />
+                <span
+                  style={{
+                    fontSize: '0.65rem',
+                    color: user.role === 'admin' ? 'var(--accent-indigo)' : 'var(--text-muted)',
+                    textTransform: 'capitalize',
+                    fontWeight: user.role === 'admin' ? 600 : 400,
+                  }}
+                >
+                  {user.role}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Logout button */}
+        <button
+          onClick={handleLogout}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.65rem',
+            padding: '0.75rem 1.25rem',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--text-muted)',
+            fontSize: '0.8rem',
+            fontFamily: 'inherit',
+            transition: 'all 0.15s ease',
+            textAlign: 'left',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--accent-red)';
+            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.06)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-muted)';
+            e.currentTarget.style.background = 'none';
+          }}
+        >
+          <LogOut size={16} />
+          <span>Sign Out</span>
+        </button>
       </div>
     </aside>
   );
