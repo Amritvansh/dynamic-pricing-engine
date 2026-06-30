@@ -45,7 +45,7 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // INDEXES
-productSchema.index({ sku: 1 }, { unique: true });
+
 productSchema.index({ category: 1 });
 productSchema.index({ isActive: 1 });
 productSchema.index({ lastPricedAt: 1 });
