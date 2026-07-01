@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Zap, KeyRound, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
-import { resetPassword } from '../api/authApi';
-import { TOKEN_KEY } from '../api/axiosInstance';
-import { useAuth } from '../context/AuthContext';
+import { confirmPasswordReset } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import ErrorAlert from '../components/common/ErrorAlert';
 
 // ── Password strength indicator ───────────────────────────
@@ -58,9 +57,10 @@ function PasswordStrength({ password }) {
 }
 
 export default function ResetPasswordPage() {
-  const { token } = useParams();
+  // Firebase sends ?oobCode=xxxx in the reset link URL
+  const [searchParams] = useSearchParams();
+  const oobCode = searchParams.get('oobCode');
   const navigate = useNavigate();
-  const { login: setAuthUser } = useAuth();
 
   const [form, setForm] = useState({ password: '', confirm: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -87,19 +87,24 @@ export default function ResetPasswordPage() {
 
     setSubmitting(true);
     try {
-      const res = await resetPassword(token, form.password);
-      // Backend returns a new JWT + user — log the user in automatically
-      const { token: newJwt, user: userData } = res.data.data;
-      localStorage.setItem(TOKEN_KEY, newJwt);
-
+      if (!oobCode) {
+        return setError('Invalid or expired reset link. Please request a new one.');
+      }
+      // Firebase verifies the oobCode and sets the new password atomically
+      await confirmPasswordReset(auth, oobCode, form.password);
       setSuccess(true);
-
-      // Redirect to dashboard after a short delay
+      // Redirect to login after a short delay
       setTimeout(() => {
-        navigate('/', { replace: true });
-      }, 2000);
+        navigate('/login', { replace: true });
+      }, 2500);
     } catch (err) {
-      setError(err.message || 'Something went wrong. The link may have expired.');
+      const msg =
+        err.code === 'auth/invalid-action-code'
+          ? 'This reset link has expired or already been used. Please request a new one.'
+          : err.code === 'auth/weak-password'
+          ? 'Password is too weak. Please use at least 8 characters.'
+          : 'Something went wrong. The link may have expired.';
+      setError(msg);
     } finally {
       setSubmitting(false);
     }
