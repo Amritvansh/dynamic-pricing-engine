@@ -4,13 +4,13 @@ import { getAuth } from 'firebase/auth';
 // ── Firebase project configuration ──────────────────────────
 // Note: authDomain fixed to match project ID (namic-price-engine)
 const firebaseConfig = {
-  apiKey: "AIzaSyCAXChICPPlhqyK8so4KWPLkTXnQPvOLXY",
-  authDomain: "namic-price-engine.firebaseapp.com",
-  projectId: "namic-price-engine",
-  storageBucket: "namic-price-engine.firebasestorage.app",
-  messagingSenderId: "422913085335",
-  appId: "1:422913085335:web:1fa2a4fcb24720acd8fed2",
-  measurementId: "G-1TJDYPM44C"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
