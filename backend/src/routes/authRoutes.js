@@ -1,16 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, logout, getMe, forgotPassword, resetPassword } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
+const { sendSuccess } = require('../utils/apiResponse');
+const asyncHandler = require('../middleware/asyncHandler');
 
-// Public routes
-router.post('/register', register);
-router.post('/login', login);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password/:token', resetPassword);
-
-// Protected routes
-router.post('/logout', protect, logout);
-router.get('/me', protect, getMe);
+// ── GET /api/v1/auth/me — return current Firebase user info ─
+// Firebase handles login/register/forgot-password on the frontend.
+// The backend only needs to confirm the identity of an already-authenticated user.
+router.get('/me', protect, asyncHandler(async (req, res) => {
+  sendSuccess(res, req.user);
+}));
 
 module.exports = router;

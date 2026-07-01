@@ -17,10 +17,12 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "firebase-admin": "^14.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.0",
     "node-cron": "^4.4.1",
-    "nodemailer": "^9.0.2"
+    "nodemailer": "^9.0.2",
+    "resend": "^6.16.0"
   },
   "devDependencies": {
     "decomment": "^0.9.5",

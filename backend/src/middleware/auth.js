@@ -1,15 +1,8 @@
-const jwt = require('jsonwebtoken');
+const { getAuth } = require('../config/firebaseAdmin');
 const asyncHandler = require('./asyncHandler');
-const User = require('../models/user');
 const { sendError } = require('../utils/apiResponse');
 
-// ── Generate signed JWT ──────────────────────────────────
-const signToken = (userId) =>
-  jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  });
-
-// ── protect — verify JWT and attach req.user ─────────────
+// ── protect — verify Firebase ID Token and attach req.user ──
 const protect = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -24,21 +17,26 @@ const protect = asyncHandler(async (req, res, next) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verify the Firebase ID token using Firebase Admin SDK
+    decoded = await getAuth().verifyIdToken(token);
   } catch (err) {
     const message =
-      err.name === 'TokenExpiredError'
+      err.code === 'auth/id-token-expired'
         ? 'Session expired — please log in again'
         : 'Invalid token — please log in again';
     return sendError(res, message, 401);
   }
 
-  const user = await User.findById(decoded.id).select('-password');
-  if (!user || !user.isActive) {
-    return sendError(res, 'User no longer exists or is deactivated', 401);
-  }
+  // Attach a user object to req so existing controllers work unchanged
+  req.user = {
+    uid: decoded.uid,
+    _id: decoded.uid,   // alias for any controller using req.user._id
+    email: decoded.email,
+    name: decoded.name || 'User',
+    role: decoded.role || 'user',
+    isActive: true,
+  };
 
-  req.user = user;
   next();
 });
 
@@ -54,4 +52,4 @@ const authorize = (...roles) => (req, res, next) => {
   next();
 };
 
-module.exports = { protect, authorize, signToken };
+module.exports = { protect, authorize };

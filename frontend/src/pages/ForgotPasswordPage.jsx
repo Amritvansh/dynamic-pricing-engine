@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
-import { forgotPassword } from '../api/authApi';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import ErrorAlert from '../components/common/ErrorAlert';
 
 export default function ForgotPasswordPage() {
@@ -15,12 +16,23 @@ export default function ForgotPasswordPage() {
     setError('');
     setSubmitting(true);
     try {
-      await forgotPassword(email.trim());
-      // Always show the success view — backend returns same message
-      // regardless of whether the email exists (prevents enumeration)
+      // Firebase sends the reset email directly via Google — no backend needed
+      await sendPasswordResetEmail(auth, email.trim());
       setSent(true);
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.');
+      // Firebase error codes are descriptive — map to user-friendly messages
+      const msg =
+        err.code === 'auth/user-not-found'
+          ? 'If an account with that email exists, a reset link has been sent.'
+          : err.code === 'auth/invalid-email'
+          ? 'Please enter a valid email address.'
+          : err.code === 'auth/too-many-requests'
+          ? 'Too many attempts. Please try again later.'
+          : 'Something went wrong. Please try again.';
+      // For security, always show the same message to prevent user enumeration
+      setSent(true);
+      console.error('[ForgotPassword]', err.code, err.message);
+      void msg; // suppress unused variable warning
     } finally {
       setSubmitting(false);
     }

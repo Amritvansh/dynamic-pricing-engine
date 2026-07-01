@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const TOKEN_KEY = 'dpe_auth_token';
+import { auth } from '../config/firebase';
 
 const api = axios.create({
   baseURL: (import.meta.env.VITE_API_URL || '').trim() || 'http://localhost:5000/api/v1',
@@ -10,12 +9,14 @@ const api = axios.create({
   timeout: 60000,
 });
 
-// ── Request interceptor — attach JWT from localStorage ───
+// ── Request interceptor — attach Firebase ID Token ────────
+// Firebase tokens expire every 1 hour. getIdToken(true) auto-refreshes if needed.
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const idToken = await currentUser.getIdToken();
+      config.headers.Authorization = `Bearer ${idToken}`;
     }
     return config;
   },
@@ -26,10 +27,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // On 401 (token expired/invalid), clear token and force re-login
+    // On 401, redirect to login
     if (error.response?.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
-      // Only redirect if not already on the login page to avoid loops
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
@@ -44,5 +43,4 @@ api.interceptors.response.use(
   }
 );
 
-export { TOKEN_KEY };
 export default api;

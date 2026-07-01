@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginUser, registerUser, logoutUser, getMe } from '../api/authApi';
-import { TOKEN_KEY } from '../api/axiosInstance';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+} from 'firebase/auth';
+import { auth } from '../config/firebase';
 
 // ── Context & hook ────────────────────────────────────────
 const AuthContext = createContext(null);
@@ -14,58 +20,63 @@ export const useAuth = () => {
 // ── Provider ──────────────────────────────────────────────
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // true while restoring session
+  const [loading, setLoading] = useState(true); // true while Firebase restores session
 
-  // ── Restore session on mount ─────────────────────────
+  // ── Firebase auto-restores session via onAuthStateChanged ──
+  // No need to manually read localStorage — Firebase handles persistence
   useEffect(() => {
-    const restoreSession = async () => {
-      const token = localStorage.getItem(TOKEN_KEY);
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const res = await getMe();
-        setUser(res.data.data);
-      } catch {
-        // Token is invalid or expired — clear it
-        localStorage.removeItem(TOKEN_KEY);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Map Firebase user to the shape the rest of the app expects
+        setUser({
+          uid: firebaseUser.uid,
+          name: firebaseUser.displayName || 'User',
+          email: firebaseUser.email,
+          role: 'user', // Firebase doesn't have roles; we default to 'user'
+        });
+      } else {
         setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
-    restoreSession();
+      setLoading(false);
+    });
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
   }, []);
 
   // ── Login ────────────────────────────────────────────
   const login = useCallback(async (email, password) => {
-    const res = await loginUser(email, password);
-    const { token, user: userData } = res.data.data;
-    localStorage.setItem(TOKEN_KEY, token);
-    setUser(userData);
-    return userData;
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const firebaseUser = credential.user;
+    const mappedUser = {
+      uid: firebaseUser.uid,
+      name: firebaseUser.displayName || 'User',
+      email: firebaseUser.email,
+      role: 'user',
+    };
+    setUser(mappedUser);
+    return mappedUser;
   }, []);
 
   // ── Register ─────────────────────────────────────────
   const register = useCallback(async (name, email, password) => {
-    const res = await registerUser(name, email, password);
-    const { token, user: userData } = res.data.data;
-    localStorage.setItem(TOKEN_KEY, token);
-    setUser(userData);
-    return userData;
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    // Save the display name to Firebase profile
+    await updateProfile(credential.user, { displayName: name });
+    const mappedUser = {
+      uid: credential.user.uid,
+      name,
+      email: credential.user.email,
+      role: 'user',
+    };
+    setUser(mappedUser);
+    return mappedUser;
   }, []);
 
   // ── Logout ───────────────────────────────────────────
   const logout = useCallback(async () => {
-    try {
-      await logoutUser();
-    } catch {
-      // ignore — server-side logout is a courtesy call
-    } finally {
-      localStorage.removeItem(TOKEN_KEY);
-      setUser(null);
-    }
+    await signOut(auth);
+    setUser(null);
   }, []);
 
   const value = {

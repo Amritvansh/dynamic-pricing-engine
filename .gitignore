@@ -1,3 +1,7 @@
+# Firebase secrets — NEVER commit these
+firebase-service-account.json
+*-service-account.json
+
 # Logs
 logs
 *.log
